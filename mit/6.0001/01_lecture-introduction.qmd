@@ -1,0 +1,142 @@
+---
+title: MIT 6.0001 - Lecture 1 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec1/)
+
+# Python Programs
+- Program: a sequence of definitions and commands 
+- Definitions are evaluated 
+- Commands are xecuted by Python interpreter
+  - Instruct interpreter to do something
+
+# Objects
+- Programs manipulate data objects
+- Objects have a `type` that defines the kinds of things a program can do to them
+- Objects are:
+  1. Scaler (cannot be subdivided)
+  2. Non-scalar (have internal structure that can be accessed)
+
+# Scalar Objects
+- `int`: represents integers
+
+```{python}
+print(type(5))
+```
+
+- `float`: represents real numbers
+
+```{python}
+print(type(3.0))
+```
+
+- `bool`: represents Boolean values of TRUE or FALSE
+
+```{python}
+print(type(True))
+```
+
+- `NoneType`: special and has one value, `None`
+
+```{python}
+print(type(None))
+```
+
+# Type Conversions
+- Can convert object of one type to another
+- Convert `int` to a `float`
+
+```{python}
+print(3)
+print(float(3))
+```
+
+- Truncate `float` to `int` (notice there is no rounding)
+
+```{python}
+print(3.9)
+print(int(3.9))
+```
+
+# Expressions
+- Combine objects and operators to form expressions
+- An expression has a value, which has a type
+- Syntax for a simple expression
+
+<center> `<object> <operator> <object>` </center>
+
+- Operators on `int`s and `float`s
+  - `+` for sum
+  - `-` for difference
+  - `*` for product
+  - `/` for division
+  - `%` for remainder when left is divided by right
+  - `**` for left to the power of right
+
+```{python}
+#| eval: false
+
+i+j
+
+i-j
+
+i*j
+
+i/j
+
+i%j
+
+i**j
+```
+
+- Operator precedence is controlled by parentheses
+  - Precendence without parentheses is:
+    1. `**`
+    2. `*`
+    3. `/`
+    4. `+` and `-` executed left to right
+
+# Binding Variables and Values
+- Equal sign (`=`) used to assign a value to a variable name
+
+```{python}
+pi = 3.14159
+print(pi)
+```
+
+- Value is stored in the computer memory
+- Can be retrieved by invoking the variable name
+- Give variables (good) names so that they can be reused
+
+```{python}
+pi = 3.14159
+radius = 2.2
+area = pi * (radius ** 2)
+print(area)
+```
+
+- Can re-bind variable names using new assignment statements
+- Previous value **may** still be stored in memory, but the handle for it has been lost
+- The value for any variable that was calculated using a re-bound variable does not change until you do the calculation again
+
+```{python}
+pi = 3.14
+print(area)
+```
+
+```{python}
+area = pi * (radius ** 2)
+print(area)
+```
+
+```{python}
+radius = radius + 1
+print(area)
+```
+
+```{python}
+area = pi * (radius ** 2)
+print(area)
+```
