@@ -1,0 +1,189 @@
+---
+title: MIT 6.0001 - Lecture 2 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec2/)
+
+# Strings
+- Can be letters, special characters, spaces, digits, etc.
+- Enclose strings in quation marks or single quotes
+
+```{python}
+hi = "hello there"
+print(hi)
+```
+
+```{python}
+hi = 'hello there'
+print(hi)
+```
+
+- Concatenate strings with `+` (but notice there is no space)
+
+```{python}
+name = "Robby"
+
+greet = hi + name
+print(greet)
+```
+
+```{python}
+greet = hi + " " + name
+print(greet)
+```
+
+- In addition to `+`, the `*` operator is overloaded to work with strings
+
+```{python}
+greeting = hi + " " + name * 3
+print(greeting)
+```
+
+# Input/Output
+
+## `print`
+- The `print` function is used to output "stuff" to the console
+- Behavior is different if you use `+` or "," to concatenate
+  - Notice that you need x casted a string to use `+`
+
+```{python}
+x = 1
+print(x)
+```
+
+```{python}
+x_str = str(x)
+print("my favorite num is", x, ".", "x = ", x)
+print("my favorite num is " + x_str +  ". " + "x = " + x_str)
+```
+
+## `input`
+- Used to gather input from the user: `input("")`
+- Prints whatever in the quotes to the console to prompt the user
+- User types in something to the console and hits enter
+- The resulting value is bound to a variable
+
+```{python}
+#| eval: false
+
+text = input("Type anything... ")
+#> User would type in some value(s)
+#> Result is stored as a string, must cast to a number if needed
+#> Could print out result using `print(text)`
+```
+
+# Comparison Operators
+
+## On `int`, `float`, and `string`
+- Below comparisons evaluate to a Boolean
+  - `i > j`
+  - `i >= j`
+  - `i < j`
+  - `i <= j`
+  - `i == j` (equality test)
+  - `i != j` (inequality test)
+
+## On `bool`
+- `not a`
+  - `True` if a is `False`
+  - `False` if a is `True`
+- `a and b`
+  - `True` if both are `True`
+  - `False` in all other cases
+- `a or b`
+  - `True` if *at least* one of them is `True`
+  - `False` if both are `False`
+
+# Control Flow
+
+## Branching
+- Evaluate a condition (`True` or `False`) and execute expression(s)
+- Indentation matters in Python, expression(s) indented under a condition are executed
+
+```{python}
+#| eval: false
+
+if x == y:
+  print("x and y are equal")
+  if y != 0:
+    print("therefore, x / y is", x / y)
+elif x < y:
+  print("x is smaller")
+else
+  print("y is smaller")
+print("Thanks!")
+```
+
+## `while` Loops
+- If the condition is `True`, keep executing the expression(s) in the indented block
+- After each execution, update the condition
+- Check it again and keep executing the expression(s) until the condition is `False`
+
+```{python}
+#| eval: false
+
+#> You are lost in the forest! Go left or right?
+n = input("You're in the Lost Forest. Go left or right? ")
+
+while n == "right":
+  n = input("You're in the Lost Forest. Go left or right? ")
+
+print("You got out of the Lost Forest!")
+```
+
+## `while` and `for` Loops
+- Can achieve the same outcomes with both types of loops
+
+```{python}
+#| eval: false
+
+#> Iterate through sequence of numbers with a while loop
+n = 0
+while n < 5:
+  print(n)
+  n = n + 1
+
+#> Code is shorter with a for loop
+for n in range(5):
+  print(n)
+```
+
+- For each iteration of the for loop, the iterator moves to the next value in the list
+    - Iterator is often created using the `range` function
+    - The default values are to start at zero and increment by 1
+    - Can specify your own start and increment to further customize
+    - Notice that range endpoint is up to but not including that number
+
+```{python}
+for i in range(7):
+  print(i)
+```
+
+```{python}
+for i in range(5, 11, 2):
+  print(i)
+```
+
+- Can use the `break` statement to break out of a loop early
+
+```{python}
+#| eval: false
+my_sum = 0
+
+for i in range(5, 11, 2):
+  my_sum += i
+  if my_sum == 5:
+    break
+    my_sum += 1
+```
+
+- Comparison of while loops and for loops
+
+| `for` Loop                         | `while` Loop                                                    |
+|:----------------------------------:|:---------------------------------------------------------------:|
+| known number of iterations         | unbounded number of iterations                                  |
+| can end early using `break`        | can end early using `break`                                     |
+| uses a counter by default          | counter but must be initialized outside and updated inside loop |
+| can always rewrite as a while loop | may not be able to rewrite as a for loop                        |
