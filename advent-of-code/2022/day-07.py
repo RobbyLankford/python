@@ -1,5 +1,5 @@
 # Import Data
-with open("day-07.txt") as file:
+with open("day-07.txt", "r") as file:
     terminal = file.readlines()
 
 path = "/"
