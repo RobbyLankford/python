@@ -1,4 +1,5 @@
 libs/
 .ipynb_checkpoints/
-*.html
 scratch-work/
+*.html
+*.pdf
