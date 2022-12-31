@@ -1,0 +1,192 @@
+---
+title: MIT 6.0001 - Lecture 3 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec3/)
+
+# String Manipulation
+- Can compare with `==`, `<`, `>`, etc.
+- Use `len()` functiont to calculate the length of a string
+
+```{python}
+s = "abc"
+
+print(len(s))
+```
+
+- Can be indexed into just like arrays
+
+```{python}
+s = "abc"
+
+print(s[0])
+print(s[1])
+print(s[2])
+#print(s[3])  # will cause an error b/c index is out of bounds
+```
+
+- Negative indexing works as well
+
+```{python}
+s = "abc"
+
+print(s[-1])
+print(s[-2])
+print(s[-3])
+```
+
+- Can slice strings using `[start:stop:step]`
+    - `step=1` is default if nothing is supplied
+    - use `[ :stop]` to start from beginning of string
+    - use `[start: ]` to end at the end of a string
+
+```{python}
+s = "abcdefgh"
+
+print(s[3:6])
+print(s[3:6:2])
+print()
+
+print(s[::])
+print(s[0:len(s):1])
+print()
+
+print(s[::-1])
+print(s[-1:-(len(s) + 1):-1])
+print()
+
+print(s[4:1:-2])
+```
+
+- Strings cannot be modified (immutable)
+
+```{python}
+s = "hello"
+# s[0] = "y"  # will cause an error
+```
+
+- To change a string, need to override the entire thing
+
+```{python}
+s = "hello"
+print(s)
+
+s = "y" + s[1:len(s)]
+print(s)
+```
+
+- Can loop over every character in a string using a for loop
+
+```{python}
+s = "abcdefgh"
+
+for i in range(len(s)):
+    if s[i] == 'i' or s[i] == 'u':
+        print("There is an 'i' or a 'u'.")
+```
+
+- The more 'pythonic' way to loop over a string: `for char in s`
+
+```{python}
+s = "abcdefgh"
+
+for char in s:
+    if char == 'i' or char == 'u':
+        print("There is an 'i' or a 'u'.")
+```
+
+# Guess and Check
+- Also called "exhaustive enumeration"
+- When given a problem:
+    1. Guess a value for the solution
+    2. Check if the solution is correct
+    3. Update guess and repeat until you guess all possible solutions or find the correct solution
+
+```{python}
+cube = 8
+
+for guess in range(abs(cube) + 1):
+    if guess ** 3 >= abs(cube):
+        break
+    
+if guess ** 3 != abs(cube):
+    print(str(cube), "is not a perfect cube")
+else:
+    if cube < 0:
+        guess = -guess
+    print("Cube root of", str(cube), "is", str(guess))
+```
+
+# Approximate Solutions
+- A "good enough" solution
+- When given a problem:
+    1. Guess a value for the solution
+    2. Check if the solution is correct
+    3. Increment solution by some small value until you get "close enough" to the answer
+- For finding a cube root:
+    1. Specify some small value `epsilon`
+    2. Calculate `|guess^3 - cube|`
+    3. Keep guessing until `|guess^3 - cube|` < `epsilon`
+- Tradeoffs:
+    - Decreasing size of increment = slower program
+    - Increasing epsilon = less accurate answer
+
+```{python}
+cube = 27
+epsilon = 0.01
+guess = 0.0
+increment = 0.0001
+num_guesses = 0
+
+while abs((guess ** 3) - cube) >= epsilon and guess <= cube:
+    guess += increment
+    num_guesses += 1
+
+print("Number of guesses:", num_guesses)
+
+if abs((guess ** 3) - cube) >= epsilon:
+    print("Failed on cube root of", cube)
+else:
+    print(guess, "is close to the cube root of", cube)
+```
+
+# Bisection Search
+- Assumes values are sorted in ascending order
+- For each iteraction
+    1. Guess midpoint of interval
+    2. If guess is too low, upper half is new interval
+    3. If guess is too high, lower half is new interval
+
+```{python}
+cube = 27
+epsilon = 0.01
+num_guesses = 0
+low = 0
+high = cube
+guess = (high + low) / 2.0
+
+while abs((guess ** 3) - cube) >= epsilon:
+    print("Iteration:", num_guesses)
+    print("Lower Bound:", low)
+    print("Upper Bound:", high)
+    print("Guess:", guess)
+    print("Guess ^ 3:", guess ** 3)
+    print("")
+
+    if guess ** 3 < cube:
+        low = guess
+    else:
+        high = guess
+    
+    guess = (high + low) / 2.0
+    num_guesses += 1
+
+print("Number of guesses:", num_guesses)
+print(guess, "is close to the cube root of", cube)
+```
+
+- Futher details:
+    - Converges to log(n) complexity
+    - Works when value of function varies monotonically with input
