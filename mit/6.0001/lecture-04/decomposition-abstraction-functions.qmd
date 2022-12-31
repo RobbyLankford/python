@@ -1,0 +1,165 @@
+---
+title: MIT 6.0001 - Lecture 4 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec4/)
+
+# Decomposition
+- Creates structure by dividing code into modules
+- Modules are:
+    - Self-contained
+    - Used to break up code
+    - Intended to be reusable
+    - Keep code organized
+    - Keep code coherent
+- Can achieve decomposition with functions and classes
+
+# Abstraction
+- Suppresses details of code (think of code like a black box)
+- In programming, abstraction means:
+    - Cannot see details
+    - Do not need to see details
+    - Do not want to see details
+    - Hide tedious coding details
+- Can achieve abstraction with function specifications or docstrings
+
+# Functions
+- Reusable pieces/chunks of code
+    - Write once, debug once, use multiple places
+- Not run in a program until they are called (invoked) in the program
+- Characteristics:
+    - Name
+    - Parameters (0 or more)
+    - Docstring (optional, but recommended)
+    - Body
+    - Returns something
+
+### Writing and Calling a Function
+- Keyword `def` defines a function
+- Function is named `is_even`
+- `i` is the parameter (argument)
+- The text between `"""` is the docstring
+- The body contains a calculation and a `return` statement
+- The `return` keyword outputs the result of the expression that follows
+    - If no `return` statement is given, Python returns `None` when the function exits
+
+```{python}
+#| eval: false
+
+def is_even(i):
+    """
+    Input: i, a positive int
+    Returns True if i is even, otherwise False
+    """
+
+    remainder = i % 2
+    return remainder == 0
+
+is_even(3)
+```
+
+### Variable Scope
+- Formal parameter is bound to the value of actual parameterwhen functino is called
+    - The format parameter `x` is the one in `def f(x):` and defines how the function is to act
+    - The actual parameter `x` is the one in `z = f(x)` and defines the value taken in by the function
+```{python}
+#| eval: false
+
+def f(x):
+    x = x + 1
+    return x
+
+x = 3
+z = f(x)
+```
+
+- A new scope/frame/environment is created when a function is entered
+    - "Scope" is mapping of names to objects
+    - `x = 3` and `z = f(x)`:
+        1. Initializes a variable x
+        2. Makes a function call to `f(x)`
+        3. Assigns the return of the function to a variable `z`
+    - The function checks that environment, which is separate from the global environment, first for defined variables
+    - If it cannot find them there, it moves up to the environment from which the function was called
+
+- When inside a function
+    - Can access a variable defined outside of it
+    - Can NOT modify a variable defined outside of it
+        - Technically you can with global variables, but this is frowned upon
+
+```{python}
+# `x` is re-defined in scope of `f()`
+def f(y):
+    x = 1
+    x += 1
+    print(x)
+
+x = 5
+f(x)
+print(x)
+```
+
+```{python}
+# `x` inside of `g()` is picked up from the scope that called `g()`
+def g(y):
+    print(x)
+    print(x + 1)
+
+x = 5
+g(x)
+print(x)
+```
+
+```{python}
+#| eval: false
+
+# Not run because it will cause an error
+# Cannot modify out-of-scope
+def h(y):
+    x += 1
+
+x = 5
+h(x)
+print(x)
+```
+
+- More complex scope: defining functions inside of functions
+    - `h()` does not really do anything
+        - It sets `x` as 'abc', but only in the scope of `h()`
+        - As soon as `h()` exits and returns to `g()`, the `x` referred to there is the formal argument of `g()`
+    - `z` would be assigned the output, which is 4
+
+```{python}
+def g(x):
+    def h():
+        x = 'abc'
+    x = x + 1
+    print("g: x =", x)
+    h()
+    return x
+
+x = 3
+z = g(x)
+```
+
+### Functions as Arguments
+- Arguments to functions can themselves be functions
+
+```{python}
+def func_a():
+    print("Inside func_a")
+
+def func_b(y):
+    print("Inside func_b")
+    return y
+
+def func_c(z):
+    print("Inside func_c")
+    return z
+
+print(func_a(), "\n")
+print(5 + func_b(2), "\n")
+print(func_c(func_a()), "\n")
+```
