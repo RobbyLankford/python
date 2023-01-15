@@ -1,0 +1,403 @@
+---
+title: MIT 6.0001 - Lecture 5 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec5/)
+
+Topics covered in this lecture:
+
+- Tuples
+- Lists
+- Aliasing
+- Mutability
+- Cloning 
+
+# Tuples
+
+## Tuple Basics
+
+- An ordered sequence of elements
+- Can mix element (`int`, `float`, `bool`, `string`) types
+- Immutable: cannot change element values
+- Represented with parentheses `()`
+
+```{python}
+#> Empty tuple
+te = ()
+
+#> Non-empty tuple
+t = (2, "mit", 3)
+
+print(t)
+print(t + (5, 6))
+
+#> Will give an error, cannot modify
+# t[1] = 4
+```
+
+- In tuples, the commas are elements
+
+```{python}
+print(t[0])
+print(t[0:1])
+print(t[0:2])
+print(t[1:2]) 
+print(t[0:3])
+print(t[1:3])
+print(t[2:3])
+```
+
+- The length of the tuple is the number of elements without the commas
+
+```{python}
+print(len(t))
+```
+
+- Can be used to conveniently swap variable values
+
+```{python}
+x = 'a'
+y = 'z'
+
+print(f"x = {x}")
+print(f"y = {y}")
+print()
+
+(x, y) = (y, x)
+
+print(f"x = {x}")
+print(f"y = {y}")
+```
+
+- Can be used to return more than one value from a function
+
+```{python}
+def quotient_and_remainder(x, y):
+    q = x // y
+    r = x % y
+
+    return (q, r)
+
+quotient_and_remainder(4, 5)
+```
+
+## Manipulating Tuples
+
+- Iterate over tuples
+
+```{python}
+def get_data(aTuple):
+    nums = ()
+    words = ()
+
+    for t in aTuple:
+        nums = nums + (t[0], )
+        if t[1] not in words:
+            words = words + (t[1], )
+    
+    min_n = min(nums)
+    max_n = max(nums)
+    unique_words = len(words)
+
+    return (min_n, max_n, unique_words)
+```
+
+# Lists
+
+## List Basics
+
+- An ordered sequence of information, accessible by index
+- Denoted by square brackets `[]`
+- Contains elements, usually homogenous, but can contain mixed types
+- Mutable: elements can be changed
+
+```{python}
+#> Empty list
+a_list = []
+
+#> Non-empty list
+L = [2, 'a', 4, [1, 2]]
+
+print(L)
+print(len(L))
+```
+
+- Access by index
+
+```{python}
+print(L[0])
+print(L[2] + 1)
+
+#> Evaluates to another list
+print(L[3])
+
+#> Out of bounds, so gives an error
+#print(L[4])
+
+#> Can index with a variable
+i = 2
+print(L[i - 1])
+```
+
+## Changing Elements
+
+- Assign an element at an index to change the value
+
+```{python}
+L = [2, 1, 3]
+print(f"Before: {L}")
+
+L[1] = 5
+print(f"After: {L}")
+```
+
+## Iterating Over a List
+
+- Common pattern is to iterate over the elements, not the length of the list
+
+```{python}
+#> Method 1: length of list
+total = 0
+for i in range(len(L)):
+    total += L[i]
+
+print(f"Method 1: {total}")
+
+print()
+
+#> Method 2: elements of list
+total = 0
+for i in L:
+    total += i
+
+print(f"Method 2: {total}")
+```
+
+## Operations on Lists
+
+- Add elements to the end of the list with `L.append(element)`
+    - Mutates the list without reassigning it
+
+```{python}
+L = [2, 1, 3]
+print(f"Before: {L}")
+
+L.append(5)
+print(f"After: {L}")
+```
+
+- Combine lists together using concatenation `+`
+    - Need to assign to new variable
+
+```{python}
+L1 = [2, 1, 3]
+L2 = [4, 5, 6]
+
+L3 = L1 + L2
+print(L3)
+```
+
+- Combine lists together using `L1.extend(L2)`
+    - Mutates the list without reassinging it
+
+```{python}
+L1 = [2, 1, 3]
+print(f"Before: {L1}")
+
+L2 = [4, 5, 6]
+L1.extend(L2)
+print(f"After: {L1}")
+```
+
+- Delete an element at a specific index with `del(L[index])`
+    - Mutates the list without reassigning it
+
+```{python}
+L = [2, 1, 3, 6, 3, 7, 0]
+print(f"Before: {L}")
+
+del(L[1])
+print(f"After: {L}")
+```
+
+- Remove an element at the end of the list with `L.pop()`, returning the element
+
+```{python}
+L = [2, 1, 3, 6, 3, 7, 0]
+
+print(L.pop())
+```
+
+- Remove a specific element with `L.remove(element)`
+    - If element occurs multiple times, removes only the first occurrence
+    - Mutates the list without reassigning it
+
+```{python}
+L = [2, 1, 3, 6, 3, 7, 0]
+print(f"Before: {L}")
+
+L.remove(2)
+print(f"After: {L}")
+
+L.remove(3)
+print(f"After: {L}")
+```
+
+- Can convert a string to a list with every character as an element
+    - Split a string on a character with `s.split()`
+
+```{python}
+s = "I<3 cs"
+
+print(s)
+print(list(s))
+print(s.split('<'))
+```
+
+- Can convert a list of characters to a string using `''.join(L)`
+
+```{python}
+L = ['a', 'b', 'c']
+
+print(''.join(L))
+print('_'.join(L))
+```
+
+- Other list operations to sort
+
+```{python}
+L = [9, 6, 0, 3]
+
+#> Sort without mutating L
+print(f"Before: {L}")
+print(f"Sorted: {sorted(L)}")
+print(f"After: {L}")
+
+print()
+
+#> Sort and mutate L
+print(f"Before: {L}")
+L.sort()
+print(f"After: {L}")
+
+print()
+
+#> Sort in reverse order (mutates L)
+print(f"Before: {L}")
+L.reverse()
+print(f"After: {L}")
+```
+
+# Mutating, Aliasing, and Cloning Lists
+
+- Lists are mutable and is an object in memory
+- Variable name points to the object
+- Any variable pointing to that object is affected when mutated
+    - Different variables pointing to the same object are "aliases"
+    - Changing values in other variables is a "side effect"
+
+```{python}
+a = 1
+b = a
+
+print(f"a: {a}")
+print(f"b: {b}")
+
+print()
+
+warm = ['red', 'yellow', 'orange']
+hot = warm
+hot.append('pink')
+
+print(f"hot: {hot}")
+print(f"warm: {warm}")
+```
+
+- To clone a list a new list must be created and every element copied over
+
+```{python}
+cool = ['blue', 'green', 'grey']
+chill = cool[:]
+chill.append('black')
+
+print(f"chill: {chill}")
+print(f"cool: {cool}")
+```
+
+- Different methods to sort a list
+    - `sort()` mutates the list, returns nothing
+    - `sorted()` does not mutate list, mut assign to new variable
+
+```{python}
+warm = ['red', 'yellow', 'orange']
+sorted_warm = warm.sort()
+
+print(f"warm: {warm}")
+print(f"sorted_warm: {sorted_warm}")
+
+print()
+
+cool = ['grey', 'green', 'blue']
+sorted_cool = sorted(cool)
+
+print(f"cool: {cool}")
+print(f"sorted_cool: {sorted_cool}")
+```
+
+- Can nest lists inside of other lists
+
+```{python}
+warm = ['yellow', 'orange']
+hot = ['red']
+
+bright_colors = [warm]
+bright_colors.append(hot)
+
+print(f"bright_colors: {bright_colors}")
+print()
+
+hot.append('pink')
+print(f"hot: {hot}")
+print(f"bright_colors: {bright_colors}")
+```
+
+- Avoid mutating a list as you are iterating over it
+
+```{python}
+#> Wrong way
+def remove_dups(L1, L2):
+    for e in L1:
+        if e in L2:
+            L1.remove(e)
+
+L1 = [1, 2, 3, 4]
+L2 = [1, 2, 5, 6]
+
+print(f"L1: {L1}")
+print(f"L2: {L2}")
+
+remove_dups(L1, L2)
+
+print(f"L1: {L1}")
+print(f"L2: {L2}")
+
+print()
+
+#> Right way
+def remove_dups(L1, L2):
+    L1_copy = L1[:]
+
+    for e in L1_copy:
+        if e in L2:
+            L1.remove(e)
+
+print(f"L1: {L1}")
+print(f"L2: {L2}")
+
+remove_dups(L1, L2)
+
+print(f"L1: {L1}")
+print(f"L2: {L2}")
+```
