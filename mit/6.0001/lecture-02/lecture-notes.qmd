@@ -6,6 +6,14 @@ jupyter: python3
 
 [Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec2/)
 
+Topics covered in this lecture:
+
+- Strings
+- Input/Output
+- Comparison Operators
+- Branching
+- Iteration (loops)
+
 # Strings
 - Can be letters, special characters, spaces, digits, etc.
 - Enclose strings in quation marks or single quotes

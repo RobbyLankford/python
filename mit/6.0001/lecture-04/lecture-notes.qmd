@@ -6,6 +6,12 @@ jupyter: python3
 
 [Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec4/)
 
+Topics covered in this lecture:
+
+- Decomposition
+- Abstraction
+- Functions
+
 # Decomposition
 - Creates structure by dividing code into modules
 - Modules are:

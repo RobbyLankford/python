@@ -6,6 +6,13 @@ jupyter: python3
 
 [Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec3/)
 
+Topics covered in this lecture:
+
+- String Manipulation
+- Guess and Check Method
+- Approximate Solution Methods
+- Bisection Search Algorithm
+
 # String Manipulation
 - Can compare with `==`, `<`, `>`, etc.
 - Use `len()` functiont to calculate the length of a string
