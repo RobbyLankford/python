@@ -1,0 +1,280 @@
+---
+title: MIT 6.0001 - Lecture 6 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec6/)
+
+Topics covered in this lecture:
+
+- Recursion
+- Dictionaries
+
+# Recursion
+
+- Overall Idea
+    - Divide/decrease and conquer
+    - The process of repeating items in a self-similar way
+- Algorithmic Definition
+    - A way to design solutions to problems by **divide-and-conquer** or **decrease-and-conquer**
+    - Reduce the problem to sipmler versions of the same problem
+- Semantic Definition
+    - A programming technique where a function calls itself
+        - Note that the goal is **NOT** to have infinite recursion
+        - There must be 1 or more base cases that are easy to solve
+        - Must solve the same problem on some other input with the goal of simplifying the larger problem input
+- Multiplication using Iteration (Loops)
+    - Simply add a number to itself a certain number of times
+    - Capture **state** by using an interation number (i)
+    - Update the value with each iteration
+
+```{python}
+def mult_iter(a, b):
+    result = 0
+    while b > 0:
+        result += a
+        b -= 1
+    
+    return result
+
+print(mult_iter(2, 3))
+```
+
+- Multiplication using Recursion
+    - Reduce the problem to a simpler, smaller version of itself
+        - `a * b` = "a" "b" times
+        - Recursively: `a + a * (b - 1)`
+        - The base case is when `b = 1`, then `a * b = 1`
+
+```{python}
+def mult(a, b):
+    if b == 1:
+        return a
+    else:
+        return a + mult(a, b - 1)
+
+print(mult(2, 3))
+```
+
+- Factorial: `n! = n * (n - 1) * (n  - 2) * ... * 1`
+    - Base case is `n = 1`
+
+```{python}
+def factorial(n):
+    if n == 1:
+        return 1
+    else:
+        return n * factorial(n - 1)
+
+print(factorial(5))
+```
+
+- General Observations
+    - Each recursive call to a function creates its own scope/environment
+    - Bindings of variables in a scope are not changed by recursive call
+        - Meaning, you can use the same variable names
+    - Flow of control passes back to previous scope once function call returns value
+    - Recursion may be simpler, more intuitive than iteration
+    - Recursion may be efficient from programmer's POV
+    - Recursion may **not** be efficient from computer's POV
+
+- Towers of Hanoi
+    - Story:
+        - Three (3) tall spikes
+        - Stack of 64 different sized discs
+        - Start on one spike
+        - Need to move stack to second spike
+        - Can only move one disc at a time
+        - A larger disc can **never** cover up a small disc
+    - Can solve recursively
+
+```{python}
+#| eval: False
+def print_move(fr, to):
+    print(f"Move from {fr} to {to}.")
+
+def towers(n, fr, to, spare):
+    if n == 1:
+        print_move(fr, to)
+    else:
+        towers(n - 1, fr, spare, to)
+        towers(1, fr, to, spare)
+        towers(n - 1, spare, to, fr)
+```
+
+- Fibonacci Numbers
+    - Use recursion to print out Fibonacci numbers
+
+```{python}
+def fib(x):
+    """assumes x an int >= 0
+       returns Fibonacci of x"""
+    
+    if x == 0 or x == 1:
+        return 1
+    else:
+        return fib(x - 1) + fib(x - 2)
+
+print(fib(0), fib(1), fib(2), fib(3), fib(4), fib(5), fib(6), fib(7))
+```
+
+- Palindromes
+    - Recusion on non-numerics
+
+```{python}
+def is_palindrome(s):
+    def to_chars(s):
+        s = s.lower()
+        ans = ""
+        for c in s:
+            if c in "abcdefghijklmnopqrstuvwxyz":
+                ans = ans + c
+        
+        return ans
+    
+    def is_pal(s):
+        if len(s) <= 1:
+            return True
+        else:
+            return s[0] == s[-1] and is_pal(s[1:-1])
+    
+    return is_pal(to_chars(s))
+
+print(f"Is 'Susan' a palindrome? {is_palindrome('Susan')}")
+print(f"Is 'Hannah' a palindrome? {is_palindrome('Hannah')}")
+```
+
+# Dictionaries
+
+- Using lists can be messy if you have to keep track of many separate lists for related information
+    - For example, students, courses, and their grade in the courses
+
+```{python}
+names = ['Ana', 'John', 'Denise', 'Katy']
+grade = ['B', 'A+', 'A', 'A']
+course = [2.00, 6.0001, 20.002, 9.01]
+
+def get_grade(student, name_list, grade_list, course_list):
+    i = name_list.index(student)
+    grade = grade_list[i]
+    course = course_list[i]
+
+    return (course, grade)
+
+print(get_grade('John', names, grade, course))
+```
+
+- A cleaner way to handle this is a dictionary
+    - Index the item of interest directly
+    - A single data structure, not separate lists
+
+- Dictionaries store pairs of data (a key and a value)
+
+- Can index into a dictionary by lookup up the key to return the associated value
+    - If the key is not found, an error occurs
+
+```{python}
+#> Create a ditionary
+grades = {'Ana': 'B', 'John':'A+', 'Denise':'A', 'Katy':'A'}
+print(grades)
+
+#> Add an entry
+grades['Sylvan'] = 'A'
+print(grades)
+
+#> Test if a key is in the dictionary
+print('John' in grades)
+print('Daniel' in grades)
+
+#> Delete an entry
+del(grades['Sylvan'])
+print(grades)
+```
+
+- Both the keys and values are iterable with no guaranteed order
+
+```{python}
+grades = {'Ana': 'B', 'John':'A+', 'Denise':'A', 'Katy':'A'}
+
+print(grades.keys())
+print(grades.values())
+```
+
+- Properties of keys and values
+    - Keys
+        - Must be unique
+        - Immutable type (`int`, `float`, `string`, `tuple`, `bool`)
+    - Values
+        - Any type (immutable and mutable)
+        - Can be duplicates, lists, even other dictionaries
+    - No order to keys or values
+
+- Dictionary Example
+    - Creating a dictionary
+
+```{python}
+def lyrics_to_freq(lyrics):
+    myDict = {}
+    for word in lyrics:
+        if word in myDict:
+            myDict[word] += 1
+        else:
+            myDict[word] = 1
+    
+    return myDict
+```
+
+    - Using the dictionary
+
+```{python}
+def most_common_words(freqs):
+    values = freqs.values()
+    best = max(values)
+
+    words = []
+    for k in freqs:
+        if freqs[k] == best:
+            words.append(k)
+    
+    return (words, best)
+```
+
+    - Leveraging properties of the dictionary
+
+```{python}
+def words_often(freqs, minTimes):
+    result = []
+
+    done = False
+    while not done:
+        temp = most_common_words(freqs)
+        if temp[1] >= minTimes:
+            result.append(temp)
+
+            for w in temp[0]:
+                del(freqs[w])
+        else:
+            done = True
+    
+    return result
+```
+
+- Can make the Fibonacci recursive function more efficient with a dictionary
+    - The same values are recalculated many times
+    - Can keep track of values that have already been calculated
+
+```{python}
+def fib_efficient(n, d):
+    if n in d:
+        return d[n]
+    else:
+        ans = fib_efficient(n - 1, d) + fib_efficient(n - 2, d)
+        d[n] = ans
+
+        return ans
+
+#> Initialize dictionary with base cases
+d = {1:1, 2:2}
+print(fib_efficient(7, d))
+```
