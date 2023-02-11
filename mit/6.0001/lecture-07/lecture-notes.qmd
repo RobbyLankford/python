@@ -1,0 +1,369 @@
+---
+title: MIT 6.0001 - Lecture 7 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec7/)
+
+Topics covered in this lecture:
+
+- Testing
+- Debugging
+- Exceptions
+- Assertions
+
+# Background
+
+- Defensive Programming
+    - Write specifications for functions
+    - Modularize programs
+    - Check conditions on inputs/outputs (assertions)
+- Easy Testing and Debugging
+    - Break program up into modules
+        - Can be tested and debugged individually
+        - Document constraints on the modules
+    - Document assumptions behind code design
+
+# Tests
+
+## Classes of Tests
+
+- Unit Testing
+    - Validate each piece of a program
+    - Test each function separately
+- Regression Testing
+    - Add tests for bugs as you find them
+    - Catch reintroduced errors that were previously fixed
+- Integration Testing
+    - Test if the overall program works
+
+## Testing Approaches
+
+- Intuition about natural boundaries (min, max, etc.)
+- If no natural partitions, might do random testing
+- Black Box Testing vs Glass Box Testing
+
+### Black Box Testing
+
+- Designed without look at the code (only the specification)
+- Explore paths through code specification
+    - Build test cases in different natural space partitions
+    - Also consider boundary conditions
+
+```{python}
+#| eval: False
+
+def sqrt(x, eps):
+    """Assumes x, esp floats, x >= 0, eps > 0
+    Returns res such that x - eps <= res * res <= x + eps"""
+```
+
+- Based on the specification above, make the following test cases
+
+| Case                   | x    | eps               |
+|:----------------------:|:----:|:-----------------:|
+| boundary               | 0    | 0.0001            |
+| perfect square         | 25   | 0.0001            |
+| less than 1            | 0.05 | 0.0001            |
+| irrational square root | 2    | 0.0001            |
+| extremes               | 2    | 1.0 / 2.0 ** 64.0 |
+
+*etc*
+
+### Glass Box Testing
+
+- Use code directly to guide design of test cases
+- "Path complete" if every potential path through code is tested
+- Potential drawbacks to this approach
+    - Can go through loops arbitrarily many times
+    - Missing paths
+- Guidelines for this approach
+    - Branches (exercise all parts of a conditional)
+    - For Loops (loop not entered, executed once, executed more than once)
+    - While Loops (same as For Loops, cases that catch all ways to exit loop)
+
+```{python}
+#| eval: false
+
+def abs(x):
+    """Assumes x is an int
+    Returns x if x >= 0 and -x otherwise"""
+
+    if x < -1:
+        return -x
+    else:
+        return x
+```
+
+- A path-complete test suite could miss a big in the above code
+    - Using 2 and -2 is path-complete
+    - However, `abs(-1)` incorrectly returns -1
+    - Boundary cases should still be tested
+
+# Debugging
+
+- A steep learning curve
+- Tools to help:
+    - Built into IDE
+    - The `print` statement
+    - Programming in a systematic way to easily identify bugs
+
+## The `print` Statement
+
+- A good way to test hypotheses
+- When to print:
+    - When you enter a function
+    - When you specify and/or use parameters
+    - When a function returns
+- Can also use the *bisection method*
+    - Put print halfway into the code
+    - Decide where bug may be depending on the printed values
+    - Focus on one half and repeat process
+
+## Debugging Steps
+- Study the program code
+    - Ask "how did I get the unexpected result?"
+- Scientific Method
+    - Study available data
+    - Form hypothesis
+    - Perform repeatable experiments
+    - Pick the simplest input to test
+
+## Error Messages (easy)
+- Trying to access beyond the limits of a set
+
+```{python}
+#| eval: False
+test = [1, 2, 3]
+
+#> Trying to access beyond the limits of a set: will cause an IndexError
+print(test[4])
+
+#> Trying to convert an inappropriate type: TypeError
+print(int(test))
+
+#> Referencing a non-existent variable: NameError (object `a` does not exist)
+print(a)
+
+#> Mixing data types without appropriate coercion: TypeError
+print('3' / 4)
+
+#. Forgetting to close parentheses, brackets, etc.: SyntaxError
+a = len([1, 2, 3]
+print(a)
+```
+
+## Logic Errors (HARD)
+
+- Steps to follow when facing logic errors
+    1. **Think** before writing new code
+    2. **Draw** pictures, take a break
+    3. **Explain** the code to a) someone else or b) a rubber ducky
+
+| Do Not                  | Do                                    |
+|:-----------------------:|:-------------------------------------:|
+| Write entire program    | Write a single function               |
+| Test entire program     | Test a single function                |
+| Debug entire program    | Debug a single function               |
+| Change code immediately | Backup code first                     |
+| Remember where bug was  | Write down potential bug in a comment |
+
+# Exceptions
+
+- What happens when procedure execution hits an *unexpected condition*
+- Get an *exception* to what was expected
+    - Trying to access a list beyond its limit
+    - Trying to convert an inappropriate type
+    - Referencing a non-existing variable
+    - Mixing data types without coercion
+- Other types of exceptions
+    - `SyntaxError`: Python cannot parse program
+    - `NameError`: local or global name not found
+    - `AttributeError`: attribute reference fails
+    - `TypeError`: Operand does not have correct type
+    - `ValueError`: Operand type okay, but value is illegal
+    - `IOError`: IO system reports malfunction (*e.g.*, file not found)
+
+## Dealing with Exceptions 
+
+- Python code can provide handlers for exceptions
+    - Exceptions raise by any statement in body of `try` are handled by the `except` statement
+    - Execution continues with the body of the `except` statement
+
+```{python}
+#| eval: False
+
+try:
+    a = int(input("Tell me one number: "))
+    b = int(input("Tell me another number: "))
+
+    print(a / b)
+except:
+    print("Bug in user input.")
+```
+
+## Handling Specific Exceptions
+
+- Have separate `except` clauses to deal with a particular type of exception
+
+```{python}
+#| eval: False
+
+try:
+    a = int(input("Tell me one number: "))
+    b = int(input("Tell me another number: "))
+
+    print("a / b = ", a / b)
+    print("a + b = ", a + b)
+except: ValueError:
+    #> Only executes if a ValueError occurs
+    print("Could not convert to a number.")
+except: ZeroDivisionError:
+    #> Only executes if a ZeroDivisionError occurs
+    print("Cannot divide by zero.")
+except:
+    #> All other errors
+    print("Something went very wrong.")
+```
+
+## Other Exceptions
+
+- `else`
+    - Body of this is executed when execution of associated `try` body compeletes with no exceptions
+- `finally`
+    - Body of this is always executed after `try`, `else`, and `except` clauses
+    - Even if an error is raised or a `break`, `continue`, or `return` is executed
+- These are useful for clean-up code that should be run no matter what else happens (*e.g.*, closing a file)
+
+## What To Do With Exceptions
+
+- Fail silently
+    - Substitute default values or just continue
+    - **Bad Idea**: user gets no warning something happened
+- Return an "error" value
+    - What value to choose?
+    - Complicates code having to check for a special value
+- Stop execution, signal an error condition
+    - In Python, this is raising an exception
+
+```{python}
+#| eval: False
+
+raise Exception("descriptive string")
+```
+
+## Exceptions as Control Flow
+
+- Do not return special values when an error occurs and then check for it
+- Instead, raise an exception when unable to produce a result
+    - `raise <exceptionName>(<arguments>)`
+
+```{python}
+def get_ratios(L1, L2):
+    """Assumes: L1 and L2 are lists of equal length of numbers
+       Returns: a list containing L1[i] / L2[i]"""
+    ratios = []
+
+    for index in range(len(L1)):
+        try:
+            ratios.append(L1[index] / L2[index])
+        except ZeroDivisionError:
+            ratios.append(float('nan')) #> nan = not a number
+        except:
+            raise ValueError("get_ratios called with bad argument.")
+    
+    return ratios
+```
+
+## Exception Example
+
+- Assume we are given a class list for a subject
+    - Each entry is a list of two parts
+    - A list of first and last name for a student
+    - A list of grades on assignments
+
+```{python}
+test_grades = [[['peter', 'parker'], [80.0, 70.0, 85.0]],
+               [['bruce', 'wayne'], [100.0, 80.0, 74.0]]]
+```
+
+- Want to create a new class list, with name, grades, and an average
+
+```{python}
+#| eval: False
+[[['peter', 'parker'], [80.0, 70.0, 85.0], 78.33333],
+ [['bruce', 'wayne'], [100.0, 80.0, 74.0], 84.66667]]
+```
+
+- Implement in a function
+
+```{python}
+def get_stats(class_list):
+    new_stats = []
+
+    for elt in class_list:
+        new_stats.append([elt[0], elt[1], avg(elt[1])])
+    
+    return new_stats
+
+def avg(grades):
+    return sum(grades) / len(grades)
+```
+
+### Error If No Grade
+
+- Option 1: decide to notify that something went wrong with a message
+
+```{python}
+def avg(grades):
+    try:
+        return sum(grades) / len(grades)
+    except ZeroDivisionError:
+        print("warning: no grades data")
+```
+
+- Option 2: change the policy and decide that a student with no grades gets a zero
+
+```{python}
+def avg(grades):
+    try:
+        return sum(grades) / len(grades)
+    except ZeroDivisionError:
+        print("Warning: no grades data")
+        return 0.0
+```
+
+# Assertions
+
+- Want to be sure that assumptions on state of computation are as expected
+- Use an **assert statement** to raise an `AssertionError` exception if assumptions are not met
+- An example of good *defensive programming*
+
+```{python}
+def avg(grades):
+    #> Function ends immediately if assertion is not met
+    assert len(grades) != 0, "no grades data"
+
+    return sum(grades) / len(grades)
+```
+
+## Assertions as Defensive Programming
+
+- Do not allow a programmer to control response to unexpected conditions
+- Ensure that execution **halts** whenever an expected condition is not met
+- Typically used to check inputs to functions
+    - But can be used anywhere
+- Can be used to check outputs of a function to avoid propagating bad values
+- Can make it easier to locate a source of a bug
+
+## Where to Use Assertions
+
+- Goal is to spot bugs as soon as introduced and make clear where they happened
+- Use as a **supplement** to testing
+- Raise exceptions if users supplies bad data
+- Use assertions to
+    - Check types of arguments or values
+    - Check that invariants on data structures are met
+    - Check constraints on return values
+    - Check for violations of constraints on prcedures (*e.g.*, no duplicates in a list)
