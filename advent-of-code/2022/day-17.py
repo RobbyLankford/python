@@ -1,5 +1,5 @@
 # Import & Parse Data
-with open("ex.txt", 'r') as file:
+with open("day-17.txt", 'r') as file:
     pattern = file.read().strip()
 
 
@@ -9,15 +9,16 @@ class Simulation:
         self.pattern = pattern
         self.pattern_step = 0
 
-        self.cave = set()
-
         #> Cave is 8 units wide, including the walls
+        self.cave = set()
         for x in range(9):
             self.cave.add((x, 0))
 
         self.rock = set()
         self.rock_id = 0
         self.pile_height = 0
+
+        self.repeats = {}
     
     
     def get_new_rock(self):
@@ -27,7 +28,6 @@ class Simulation:
 
         Returns: updates class attributes for a new rock.
         """
-
         self.rock = set()
         rock_num = self.rock_id % 5 #> Five types of rocks that repeat in order
 
@@ -98,6 +98,20 @@ class Simulation:
 
             if not can_fall:
                 break
+        
+        #> If this exact rock formation has been seen before, record it so we can skip it later
+        match = (None, None)
+        repeat_found = self.find_repeat()
+
+        if (repeat_found in self.repeats):
+            match = (
+                self.pile_height - self.repeats[repeat_found][0], 
+                self.rock_id - self.repeats[repeat_found][1]
+            )
+
+        self.repeats[repeat_found] = (self.pile_height, self.rock_id)
+
+        return match
             
     
     def push(self, dir='right'):
@@ -143,14 +157,54 @@ class Simulation:
             self.cave.add((x, y))
 
         return False
+    
+
+    def find_repeat(self):
+        """Search for repeated patterns in rock formations to speed up calculation.
+
+        Args: none
+
+        Returns: a frozenset of coordinates where a repeated pattern occurs
+        """
+        #> Repeats tend to happen ~ every 50 rows (exact value does not matter, just sufficiently large)
+        rows = 50
+        coords = set((self.rock_id % 5, ))
+
+        #> Check if we have seen this formation before
+        for x in range(1, 8):
+            for y in range(rows):
+                if (x, y + self.pile_height - rows) in self.cave:
+                    coords.add((x, y))
+        
+        #> Return coordinates where formation has been seen
+        return frozenset(coords)
 
 
 # Question 1
 simulation = Simulation(pattern)
-
 rocks_to_drop = 2022
 
 for _ in range(rocks_to_drop):
     simulation.drop_a_rock()
 
 print(f"Answer 1: {simulation.pile_height}")
+
+
+# Question 2
+simulation = Simulation(pattern)
+rocks_to_drop = 1_000_000_000_000
+
+#> Find when repeats start to occur
+while True:
+    height, rocks = simulation.drop_a_rock()
+    if height is not None:
+        break
+
+rocks_left_to_drop = rocks_to_drop - simulation.rock_id + 1
+sections_to_skip = rocks_left_to_drop // rocks
+rocks_to_drop_new = rocks_left_to_drop - (sections_to_skip * rocks)
+
+for _ in range(rocks_to_drop_new):
+    simulation.drop_a_rock()
+
+print(f"Answer 2: {simulation.pile_height + (sections_to_skip * height) - 1}")
