@@ -1,5 +1,5 @@
-# Import & Parse Data
-with open("ex.txt", 'r') as file:
+# Import Data
+with open("day-18.txt", 'r') as file:
     scan = file.readlines()
 
 

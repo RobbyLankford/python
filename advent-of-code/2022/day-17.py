@@ -1,4 +1,4 @@
-# Import & Parse Data
+# Import Data
 with open("day-17.txt", 'r') as file:
     pattern = file.read().strip()
 
