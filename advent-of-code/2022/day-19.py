@@ -13,6 +13,8 @@ class Factory:
     def __init__(self, blueprints) -> None:
         self.blueprints = blueprints
         self.quality_level = 0
+        self.geodes_multiplied = 1
+    
     
     def calc_num_geodes_opened(self, blueprint, time):
         """Calculate the number of geodes that can be opened using BFS
@@ -105,16 +107,57 @@ class Factory:
 
         Args:
             time (int): the time remaining to open geodes
+        
+        Returns: updates self.quality_level
         """
         for id, blueprint in enumerate(self.blueprints):
             blueprint_id = id + 1
             max_geodes = self.calc_num_geodes_opened(blueprint, time)
             
             self.quality_level += blueprint_id * max_geodes
+    
+    
+    def solve_part2(self, time):
+        """Solve Part 2 by multiplying max geode values together
+
+        Args:
+            time (int): the time remaining to open geodes
+        
+        Returns: updates self.geodes_multiplied
+        """
+        for blueprint in self.blueprints:
+            max_geodes = self.calc_num_geodes_opened(blueprint, time)
+            
+            self.geodes_multiplied *= max_geodes
+    
+    
+    def get_part1(self):
+        """Get answer to Part 1
+
+        Returns:
+            int: value of self.quality_level
+        """
+        return self.quality_level
+    
+    
+    def get_part2(self):
+        """Get answer to Part 2
+
+        Returns:
+            int: value of self.geodes_multiplied
+        """
+        return self.geodes_multiplied
             
 
 # Question 1
 factory = Factory(blueprints)
 factory.solve_part1(24)
 
-print(f"Answer 1: {factory.quality_level}")
+print(f"Answer 1: {factory.get_part1()}")
+
+
+# Question 2
+factory = Factory(blueprints[ :3])
+factory.solve_part2(32)
+
+print(f"Answer 2: {factory.get_part2()}")
