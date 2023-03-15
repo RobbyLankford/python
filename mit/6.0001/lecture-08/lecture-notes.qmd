@@ -1,0 +1,217 @@
+---
+title: MIT 6.0001 - Lecture 8 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec8/)
+
+Topics covered in this lecture:
+
+- Object Oriented Programming
+
+# Objects
+
+- Each kind of data in python is an object
+- Each object has:
+    - A type
+    - An internal data representation
+    - A set of procedures for interaction with the object
+- An object is an instance of a type
+    - *e.g.*, `1234` is an instance of an `int` (an integer)
+    - *e.g.*, `"hello"` is an instance of a `str` (a string)
+
+# Object Oriented Programming (OOP)
+
+- Again, **EVERYTHING** in Python is an object and has a type
+- New objects of the same type can be created
+- Objects can be manipulated
+- Objects can be destroyed
+    - Explicitly destroy objects using `del`, or just "forget" about them
+    - Python will reclaim destoryed or inaccessible objects (garbage collection)
+
+# What Are Objects?
+
+- A data abstractions that captures
+    - An internal representation (through data attributes)
+    - An interface for interacting with the object (method/procedures/functions)
+
+```{python}
+#| eval: false
+
+#> [1, 2, 3, 4] has type list
+L = [1, 2, 3, 4]
+
+#> Represented internally as a linked list of cells:
+#> L = [1 | ->] -> [2 | ->] -> [3 | ->] -> [4 | ->]
+#> Follow the pointer to the next index
+
+#> Lists are manipulated via built-in functions or object methods
+L[i]
+L[i:j]
+
+len(L)
+min(L)
+max(L)
+del(L[i])
+
+L.append()
+L.extend()
+L.count()
+L.index()
+L.insert()
+L.pop()
+L.remove()
+L.reverse()
+L.sort()
+```
+
+# Advantages of OOP
+
+- Bundle data into packages together with procedures
+- Divide-and-conquer development
+    - Implement and test behavior of each class separately
+    - Incresed modularity reduces complexity
+- Classes make it easy to reuse code
+    - Each class has a separate environment (no function name collisions)
+    - Inheritance allows subclasses to redefine or extend a selected subset of a superclass' behavior
+
+# Creating Type Classes
+
+- Creating a class involves
+    - Defining the class name
+    - Defining class attributes
+- Using the class involves
+    - Creating new instances of objects
+    - Doing operations on the instances
+- Use the `class` keyword to define a new type
+    - Similar to `def`, indent code to indicate which statements are part of the class definition
+    - Can pass in an existing `object` as a parent class
+        - The new class will inherit all attributes of the parent class
+
+```{python}
+#| eval: false
+
+class Coordinate(object):
+    # define attributes here
+
+#> `Coordinate` is a subclass of `object`
+#> `object` is a superclass of `Coordinate`
+#> `Coordinate` inherits all attributes of `object`
+```
+
+# What Are Attributes?
+
+- Data and procedures that "belong" to the class
+- Data Attributes
+    - Other objects that make up the class (a coordinate is made up of two numbers)
+- Methods
+    - Functions that only work with this class
+    - How to interact with the object
+- First step is to create an instance of an object
+    - Use special method `__init__` to initialize some data attributes
+    - Data attributes of an instance are called "instance variables"
+
+```{python}
+#> Define an instance of a class
+class Coordinate(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+#> Creating an instance of a class
+c = Coordinate(3, 4)
+origin = Coordinate(0, 0)
+
+print(c.x)
+print(origin.x)
+```
+
+# What Is A Method?
+
+- Procedural attribute, like a function that works only with this class
+- Python always passes the object as the first argument
+    - Convention is to use `self` as the name of the first argument of all methods
+- The `.` operator is used to access any attribute
+
+```{python}
+#> Define a method for the `Coordinate` Class
+class Coordinate(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    
+    def distance(self, other):
+        x_diff_sq = (self.x - other.x) ** 2
+        y_diff_sq = (self.y - other.y) ** 2
+
+        return (x_diff_sq + y_diff_sq) ** 0.5
+
+#> Using a Method
+c = Coordinate(3, 4)
+origin = Coordinate(0, 0)
+
+##> Method #1
+print(c.distance(origin))
+
+##> Method #2
+print(Coordinate.distance(c, origin))
+```
+
+# Print Method
+
+- Printing an object without defining a print method is uninformative
+
+```{python}
+c = Coordinate(3, 4)
+print(c)
+```
+
+- Define a `__str__` method, which Python calls when `print` is used
+
+```{python}
+class Coordinate(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    
+    def distance(self, other):
+        x_diff_sq = (self.x - other.x) ** 2
+        y_diff_sq = (self.y - other.y) ** 2
+
+        return (x_diff_sq + y_diff_sq) ** 0.5
+    
+    def __str__(self):
+        return "<" + str(self.x) + "," + str(self.y) + ">"
+
+c = Coordinate(3, 4)
+
+print(c)
+```
+
+# Special Operators
+
+- `+`, `-`, `==`, `<`, `>`, `len()`, `print()`, and many others
+- As with `print`, can override these to work with the class
+
+```{python}
+#| eval: false
+
+__add__(self, other) -> self + other
+__sub__(self, other) -> self - other
+__eq__(self, other) -> self == other
+__lt__(self, other) -> self < other
+__len__(self) -> len(self)
+__str__(self) -> print(self)
+
+#> and so on...
+```
+
+# The Power of OOP
+
+- Bundle together objects that share
+    - Common attributes
+    - Procedures that operate on those attributes
+- Use abstraction to make a distinction between how to implement an objects vs how to use the object
+- Build layers of object abstractions that inherit behaviors from other classes of objects
+- Create your own classes of objects on top of Python's basic classes
