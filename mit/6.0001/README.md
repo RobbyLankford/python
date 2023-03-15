@@ -20,7 +20,7 @@ The goals of this course are:
 | 04      | Decomposition, Abstraction, Functions                           | Pset 1, Pset 2 | X         |
 | 05      | Tuples, Lists, Aliasing, Mutability, Cloning                    | Pset 2         | X         |
 | 06      | Recursion, Dictionaries                                         | Pset 3         | X         |
-| 07      | Testing, Debugging, Exceptions, Assertions                      | Pset 3         |           |
+| 07      | Testing, Debugging, Exceptions, Assertions                      | Pset 3         | X         |
 | 08      | Object Oriented Programming                                     | Pset 3         |           |
 | 09      | Python Classes and Inheritance                                  | Pset 4         |           |
 | 10      | Understanding Program Efficiency, Part 1                        | Pset 5         |           |
