@@ -11,16 +11,16 @@ with open("day-23.txt", 'r') as file:
 class Grove:
     directions = [
         #> North West, North, North East
-        ((1, -1), (1, 0), (1, 1)),
-        
-        #> South West, South, South East
         ((-1, -1), (-1, 0), (-1, 1)),
         
+        #> South West, South, South East
+        ((1, -1), (1, 0), (1, 1)),
+        
         #> North West, West, South West
-        ((1, -1), (0, -1), (-1, -1)),
+        ((-1, -1), (0, -1), (1, -1)),
         
         #> North East, East, South East
-        ((1, 1), (0, 1), (-1, 1))
+        ((-1, 1), (0, 1), (1, 1))
     ]
     
     
@@ -125,6 +125,47 @@ class Grove:
                     self.elves.remove(move_from[0])
             
         return self.calc_empty_spaces()
+    
+    
+    def solve_part2(self):
+        """Solve Part 2 by finding the number of rounds necessary for elves to stop moving
+
+        Returns:
+            int: the number of rounds
+        """
+        round = 0
+        
+        while True:
+            moves = defaultdict(list)
+            
+            #> Each elf considers the next move
+            for row, col in self.elves:
+                ##> 1. Check for No Neighbors
+                if self.check_no_neighbors(row, col):
+                    continue
+                
+                ##> 2. Check for Next Move
+                for move in range(4):
+                    consider = self.directions[(move + round) % 4]
+                    
+                    ###> If a move is available, register the "to" as the key and the "from" as the value
+                    if self.check_next_move(row, col, consider):
+                        moves[(row + consider[1][0], col + consider[1][1])].append((row, col))
+                        break
+            
+            #> Perform any next moves
+            for move_to, move_from in moves.items():
+                ##> Elf can move if only one of them wants to move to a certain spot
+                if len(move_from) == 1:
+                    self.elves.add(move_to)
+                    self.elves.remove(move_from[0])
+            
+            round += 1
+            
+            if len(moves) == 0:
+                break
+    
+        return round
 
 
 # Question 1
@@ -132,3 +173,10 @@ grove = Grove(scan)
 ans1 = grove.solve_part1()
 
 print(f"Answer 1: {ans1}")
+
+
+# Question 2
+grove = Grove(scan)
+ans2 = grove.solve_part2()
+
+print(f"Answer 2: {ans2}")
