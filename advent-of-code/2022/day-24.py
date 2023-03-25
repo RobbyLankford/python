@@ -97,9 +97,57 @@ class Blizzards:
                 
                 #> Keep going if we are on the map and there is no storm in our way
                 elif 0 <= new_row < self.num_rows and 0 <= new_col < self.num_cols and (new_row, new_col) not in storms:
-                    queue.append((time + 1, row + drow, col + dcol))
+                    queue.append((time + 1, new_row, new_col))
         
         return self.part1
+    
+    
+    def solve_part2(self):
+        self.part2 = None
+        
+        #> Use Breadth-First-Search to try all possibilities
+        queue = list()
+        queue.append((0, *self.start, 0))
+        visited = set()
+        
+        #> Same as self.solve_part1, but include "trip" since the route is done 3 times
+        while not self.part2:
+            time, row, col, trip = queue.pop(0)
+            
+            if (time, row, col, trip) in visited:
+                continue
+            
+            visited.add((time, row, col, trip))
+            
+            storms = self.get_storms(time + 1)
+            
+            if (row, col) not in storms:
+                queue.append((time + 1, row, col, trip))
+            
+            for drow, dcol in self.directions.values():
+                new_row = row + drow
+                new_col = col + dcol
+                
+                #> If we reach the end of the path...
+                if (new_row, new_col) == self.stop and trip in [0, 2]:
+                    #> ... the first time, increment trip to 1 to turn around and go back
+                    if trip == 0:
+                        queue.append((time + 1, new_row, new_col, 1))
+                    #> ... the second time, then record the time and end
+                    else:
+                        self.part2 = time + 1
+                        break
+                
+                #> If we reach the start of the path, increment trip to 2 to turn around and go back
+                elif (new_row, new_col) == self.start and trip == 1:
+                    queue.append((time + 1, *self.start, 2))
+                    break
+                
+                #> Keep going if we are on the map and there is no storm in our way
+                elif 0 <= new_row < self.num_rows and 0 <= new_col < self.num_cols and (new_row, new_col) not in storms:
+                    queue.append((time + 1, new_row, new_col, trip))
+    
+        return self.part2
 
 
 # Question 1
@@ -107,3 +155,10 @@ blizzards = Blizzards(map)
 ans1 = blizzards.solve_part1()
 
 print(f"Answer 1: {ans1}")
+
+
+# Question 2
+blizzards = Blizzards(map)
+ans2 = blizzards.solve_part2()
+
+print(f"Answer 2: {ans2}")
