@@ -22,7 +22,7 @@ The goals of this course are:
 | 06      | Recursion, Dictionaries                                         | Pset 3         | X         |
 | 07      | Testing, Debugging, Exceptions, Assertions                      | Pset 3         | X         |
 | 08      | Object Oriented Programming                                     | Pset 3         | X         |
-| 09      | Python Classes and Inheritance                                  | Pset 4         |           |
+| 09      | Python Classes and Inheritance                                  | Pset 4         | X         |
 | 10      | Understanding Program Efficiency, Part 1                        | Pset 5         |           |
 | 11      | Understanding Program Efficiency, Part 2                        | Pset 5         |           |
 | 12      | Searching and Sorting                                           | Pset 5         |           |
