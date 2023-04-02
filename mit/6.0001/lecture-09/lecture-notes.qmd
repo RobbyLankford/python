@@ -1,0 +1,374 @@
+---
+title: MIT 6.0001 - Lecture 9 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec9/)
+
+Topics covered in this lecture:
+
+- Python Classes
+- Class Inheritance
+
+# Python Classes
+
+## Implementing vs Using The Class
+
+- Write code from two different perspectives
+- **Implementing** a new object type with a class
+    - Define the class
+    - Define data attributes (*what* is the object?)
+    - Define methods (*how* to use the object)
+- **Using** the new object type in code
+    - Create instances of the object type
+    - Do operations with the instances
+
+## Class Definition of an Object Type
+
+- Class name is the type
+- Class is defined generically using `self` to refer to some instance
+- Class defines data and methods common across *all* instances
+
+## Instance of a Class
+
+- Instance is one specific object
+- Data attribute values vary between classes
+- Instance has the structure of the class
+
+## Attributes
+
+- Groups of objects have attributes
+- Data Attributes
+    - What is the object?
+    - How can you represent the object data?
+- Procedural Attributes
+    - What does the object do?
+    - How can someone interact with the object?
+
+```{python}
+class Animal(object):
+    def __init__(self, age):
+        self.age = age
+        self.name = None
+    
+my_animal = Animal(3)
+```
+
+## Getter and Setter Methods
+
+- Should be used outside of the class to access data attributes
+
+```{python}
+class Animal(object):
+    def __init__(self, age):
+        self.age = age
+        self.name = None
+    
+    def get_age(self):
+        return self.age
+    
+    def get_name(self):
+        return self.name
+    
+    def set_age(self, new_age):
+        self.age = new_age
+    
+    def set_name(self, new_name=""):
+        self.name = new_name
+    
+    def __str__(self):
+        return "animal:" + str(self.name) + ":" + str(self.age)
+
+a = Animal(3)
+
+print(a.get_age())
+print(a.get_name())
+
+a.set_age(4)
+a.set_name("John")
+
+print(a.get_age())
+print(a.get_name())
+```
+
+## Information Hiding
+
+- Author of class definition may change data attribute variable names
+- If accessing data attributes outside the class and class definition changes, errors will occur
+
+```{python}
+#| eval: false
+
+class Animal(object):
+    def __init__(self, age):
+        self.age = age
+
+    def get_age(self):
+        return self.age
+
+class Animal(object):
+    def __init__(self, age):
+        self.years = age
+    
+    def get_age(self):
+        return self.years
+```
+
+- Outside of the class, use getters and setters to set and access data attributes
+- Python is not great at information hiding (do not do the following things)
+
+```{python}
+#| eval: false
+a = Animal(3)
+
+#> Allows accessing data attributes from outside class definition
+print(a.age)
+
+#> Allows (over)writing data attributes from outside class definition 
+a.age = 'infinite'
+
+#> Allows creation of data attributes from outside class definition
+a.size = 'tiny'
+```
+
+## Default Arguments
+
+- Default arguments for formal parameters are used if no actual argument is given
+
+```{python}
+class Animal(object):
+    def __init__(self):
+        self.name = None
+    
+    def set_name(self, new_name=""):
+        self.name = new_name
+    
+    def get_name(self):
+        print(self.name)
+
+a = Animal()
+a.set_name()
+a.get_name()
+
+a.set_name("fluffy")
+a.get_name()
+```
+
+# Inheritance
+
+## Hierarchies
+- Parent class (superclass)
+- Child class (subclass)
+    - Inherits all data and behaviors of parent class
+    - Can add more information than present in the parent class
+    - Can add more behavior than present in the parent class
+    - Can override behavior of the parent class
+
+```{python}
+#> Class `object` implements basic operations in Python
+#> Class `Animal` inherits all data and behaviors of `object`
+class Animal(object):
+    def __init__(self, age):
+        self.age = age
+        self.name = None
+    
+    def get_age(self):
+        return self.age
+    
+    def get_name(self):
+        return self.name
+    
+    def set_age(self, new_age):
+        self.age = new_age
+    
+    def set_name(self, new_name=""):
+        self.name = new_name
+    
+    def __str__(self):
+        return "animal:" + str(self.name) + ":" + str(self.age)
+
+
+#> Class `cat` inherits all data and behavior of class `Animal`, which inherited from class `object`
+class Cat(Animal):
+    ##> Do not need to define __init__ since `Animal` already defined that
+
+    ##> Define a method specific to `Cat` that is not in `Animal`
+    def speak(self):
+        print("meow")
+    
+    ##> Override the `__str__` method from `Animal`
+    def __str__(self):
+        return "cat:" + str(self.name) + ":" + str(self.age)
+```
+
+## Which Method to Use?
+
+- Subclass(es) can have methods with the same name as the superclass
+- For an instance of a class, Python looks for a method name in current class definition
+- If not found, Python looks for a method name up the hierarchy (parent, grandparent, *etc*.)
+- Python uses the first method up the hierarchy that is found with the method name
+
+```{python}
+#> The `Animal` (Super)Class
+class Animal(object):
+    ##> Define constructor
+    def __init__(self, age):
+        self.age = age
+        self.name = None
+    
+    ##> Define methods
+    def get_age(self):
+        return self.age
+    
+    def get_name(self):
+        return self.name
+    
+    def set_age(self, new_age):
+        self.age = new_age
+    
+    def set_name(self, new_name=""):
+        self.name = new_name
+    
+    ##> Define print method
+    def __str__(self):
+        return "animal:" + str(self.name) + ":" + str(self.age)
+
+
+#> Parent class is `Animal`
+class Person(Animal):
+    def __init__(self, name, age):
+        ##> Call `Animial` constructor
+        Animal.__init__(self, age)
+
+        ##> Call `Animal` method to set name
+        self.set_name(name)
+
+        ##> Add a new data structure not present in `Animal`
+        self.friends = []
+    
+    ##> New Methods
+    def get_friends(self):
+        return self.friends
+    
+    def add_friend(self, fname):
+        if fname not in self.friends:
+            self.friends.append(fname)
+    
+    def speak(self):
+        print("hello")
+    
+    def age_diff(self, other):
+        diff = self.age - other.age
+        print(abs(diff), "year difference")
+    
+    ##> Override `Animal`'s `__str__` method
+    def __str__(self):
+        return "person:" + str(self.name) + ":" + str(self.age)
+
+
+#> Parent class is `Person`
+import random
+
+class Student(Person):
+    def __init__(self, name, age, major=None):
+        ##> Call `Person` constructor, which calls `Animal` constructor
+        Person.__init__(self, name, age)
+
+        ##> Add new data
+        self.major = major
+    
+    ##> New Methods
+    def change_major(self, major):
+        self.major = major
+    
+    ##> Override `Person` methods
+    def speak(self):
+        r = random.random()
+
+        if r < 0.25:
+            print("I have homework")
+        elif 0.25 <= r < 0.5:
+            print("I need sleep")
+        elif 0.5 <= r < 0.75:
+            print("I should eat")
+        else:
+            print("I am watching TV")
+    
+    def __str__(self):
+        return "student:" + str(self.name) + ":" + str(self.age) + ":" + str(self.major)
+```
+
+## Class Variables
+
+- Class variables and their values are shared between all instances of a class
+
+```{python}
+#> Parent class is `Animal`
+class Rabbit(Animal):
+    ##> Class variable
+    tag = 1
+
+    def __init__(self, age, parent1=None, parent2=None):
+        Animal.__init__(self, age)
+        self.parent1 = parent1
+        self.parent2 = parent2
+        
+        ##> Instance variable
+        self.rid = Rabbit.tag
+
+        ##> Incrementing class variable changes it for all instances
+        ##> Gives unique ID to each new rabbit instance
+        Rabbit.tag += 1
+
+    def get_rid(self):
+        return str(self.rid).zfill(3)
+    
+    def get_parent1(self):
+        return self.parent1
+    
+    def get_parent2(self):
+        return self.parent2
+```
+
+```{python}
+r1 = Rabbit(3)
+r1.get_rid()
+```
+
+```{python}
+r2 = Rabbit(3)
+r2.get_rid()
+```
+
+```{python}
+r3 = Rabbit(3)
+r3.get_rid()
+```
+
+## Special Methods
+
+- Define `+` operator between two Rabbit instances
+    - Create a new rabbit with `self` and `other` rabbit as the parents
+
+```{python}
+#| eval: false
+
+def __add__(self, other):
+    return Rabbit(0, self, other)
+```
+
+- Define two rabbits as equal if they have the same two parents
+
+```{python}
+#| eval: false
+
+def __eq__(self, other):
+    parents_same = self.parent1.rid == other.parent.rid1 \
+                    and self.parent2.rid == other.parent2.rid
+    
+    parents_opposite = self.parent2.rid == other.parent1.rid \
+                        and self.parent1.rid == other.parent2.rid
+    
+    return parents_same or parents_opposite
+```
