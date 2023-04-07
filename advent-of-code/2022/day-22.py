@@ -17,6 +17,7 @@ class Password:
     
     def __init__(self, board, moves) -> None:
         self.board = defaultdict(lambda: " ")
+        self.edges = {}
         self.direction = "R"
         self.position = None
         self.max_row = 0
@@ -24,6 +25,7 @@ class Password:
         self.moves = None
         
         self.parse_board(board)
+        self.parse_edges()
         self.parse_moves(moves)
     
     
@@ -44,6 +46,32 @@ class Password:
         
         self.max_row = row
     
+    
+    def parse_edges(self):
+        """For part 2, need to reorient when an edge is reached
+        """
+        #> Each face is 50 rows
+        for i in range(50):
+            #> Edges wrap around to a different face
+            #> A mapping of where you end up when you walk off a specified edge
+            self.edges[(0, 50 + i, "U")] = (150 + i, 0, "R")
+            self.edges[(0, 100 + i, "U")] = (199, i, "U")
+            self.edges[(100, i, "U")] = (50 + i, 50, "R")
+            
+            self.edges[(49, 100 + i, "D")] = (50 + i, 99, "L")
+            self.edges[(149, 50 + i, "D")] = (150 + i, 49, "L")
+            self.edges[(199, i, "D")] = (0, 100 + i, "D")
+            
+            self.edges[(i, 50, "L")] = (149 - i, 0, "R")
+            self.edges[(50 + i, 50, "L")] = (100, i, "D")
+            self.edges[(150 + i, 0, "L")] = (0, 50 + i, "D")
+            self.edges[(149 - i, 0, "L")] = (i, 50, "R")
+            
+            self.edges[(50 + i, 99, "R")] = (49, 100 + i, "U")
+            self.edges[(150 + i, 49, "R")] = (149, 50 + i, "U")
+            self.edges[(i, 149, "R")] = (149 - i, 99, "L")
+            self.edges[(149 - i, 99, "R")] = (i, 149, "L")
+            
     
     def parse_moves(self, moves):
         """Parse the move instructions
@@ -71,22 +99,29 @@ class Password:
         self.moves = result
     
     
-    def move(self, times):
+    def move(self, times, part2=False):
         """Move in a certain direction a specific number of times
 
         Args:
             times (int): how many times to move
+            part2 (bool, optional): If this is for part 2. Defaults to False.
         """
         for _ in range(times):
             row, col = self.position
             drow, dcol = self.movement[self.direction]
-            next_space = self.board[(row + drow, col + dcol)]
+            nrow, ncol = row + drow, col + dcol
+            ndir = self.direction
             
-            if next_space == ".":
-                self.position = (row + drow, col + dcol)
-            elif next_space == "#":
+            #> If part 2, must also wrap around edges into 3-D cube
+            if part2 and (row, col, self.direction) in self.edges:
+                nrow, ncol, ndir = self.edges[(row, col, self.direction)]
+            
+            if self.board[(nrow, ncol)] == ".":
+                self.position = (nrow, ncol)
+                self.direction = ndir
+            elif self.board[(nrow, ncol)] == "#":
                 return
-            elif next_space == " ":
+            elif self.board[(nrow, ncol)] == " ":
                 if self.direction == "U":
                     row = self.max_row
                 elif self.direction == "D":
@@ -133,10 +168,34 @@ class Password:
         password = (row + 1) * 1000 + (col + 1) * 4 + self.score[self.direction]
         
         return password
+    
+    
+    def solve_part2(self):
+        """Solve Part 2 by taking steps and turning
 
+        Returns:
+            _type_: _description_
+        """
+        for move in self.moves:
+            if move in ["R", "L"]:
+                self.turn(move)
+            else:
+                self.move(move, part2=True)
+        
+        row, col = self.position
+        password = (row + 1) * 1000 + (col + 1) * 4 + self.score[self.direction]
+        
+        return password
 
 # Question 1
 password = Password(board, moves)
 ans1 = password.solve_part1()
 
 print(f"Answer 1: {ans1}")
+
+
+# Question 2
+password = Password(board, moves)
+ans2 = password.solve_part2()
+
+print(f"Answer 2: {ans2}")
