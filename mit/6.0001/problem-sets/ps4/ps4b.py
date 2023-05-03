@@ -3,6 +3,7 @@
 import string
 
 ### HELPER CODE ###
+
 def load_words(file_name):
     '''
     file_name (string): the name of the file containing 
@@ -13,14 +14,14 @@ def load_words(file_name):
     Depending on the size of the word list, this function may
     take a while to finish.
     '''
-    print("Loading word list from file...")
     # inFile: file
     inFile = open(file_name, 'r')
+
     # wordlist: list of strings
     wordlist = []
     for line in inFile:
         wordlist.extend([word.lower() for word in line.split(' ')])
-    #print("  ", len(wordlist), "words loaded.")
+    
     return wordlist
 
 def is_word(word_list, word):
@@ -54,6 +55,7 @@ def get_story_string():
 
 ### END HELPER CODE ###
 
+# Constants
 WORDLIST_FILENAME = 'words.txt'
 
 class Message(object):
@@ -136,10 +138,10 @@ class Message(object):
         Returns: the message text (string) in which every character is shifted
              down the alphabet by the input shift
         '''
-        cipher = self.build_shift_dict(shift=shift)
+        cipher = self.build_shift_dict(shift)
         out = []
         
-        for c in self.message_text:
+        for c in self.get_message_text():
             if c in cipher.keys():
                 out.append(cipher[c])
             else:
@@ -246,8 +248,10 @@ class CiphertextMessage(Message):
             decrypted = self.apply_shift(shift)
             tokens = decrypted.split()
             
+            valid_words = self.get_valid_words()
+            
             for token in tokens:
-                if is_word(self.valid_words, token):
+                if is_word(valid_words, token):
                     score += 1
             
             if score > best_score:
@@ -264,18 +268,26 @@ if __name__ == '__main__':
     print('Expected Output: Pa dhz aol ilza vm aptlz...')
     print('Actual Output:', plaintext1.get_message_text_encrypted())
     
+    print()
+    
     plaintext2 = PlaintextMessage('...it was the worst of times.', 20)
     print('Expected Output: ...cn qum nby qilmn iz ncgym.')
     print('Actual Output:', plaintext2.get_message_text_encrypted())
+    
+    print()
     
     # CiphertextMessage example test cases
     ciphertext1 = CiphertextMessage('Pa dhz aol ilza vm aptlz...')
     print('Expected Output:', (7, 'It was the best of times...'))
     print('Actual Output:', ciphertext1.decrypt_message())
     
+    print()
+    
     ciphertext2 = CiphertextMessage('...cn qum nby qilmn iz ncgym.')
     print('Expected Output:', (20, '...it was the worst of times.'))
     print('Actual Output:', ciphertext2.decrypt_message())
+    
+    print()
     
     story = CiphertextMessage(get_story_string())
     print('Story Decrypted:', story.decrypt_message())
