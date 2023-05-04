@@ -1,0 +1,303 @@
+---
+title: MIT 6.0001 - Lecture 11 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec11/)
+
+Topics covered in this lecture:
+
+- Classes of Complexity
+
+# Recap
+
+## Orders of Growth
+
+- Want to evaluate program's efficiency when input is very big
+- Want to express the growth of program's run time as input size grows
+- Want to put an **upper bound** on growth (as tight as possible)
+- Do not need to be precise
+    - Going for "order of" not "exact" growth
+- Look at the **largest factors** in run time
+    - Which section of the program will take the longest to run
+- In general, want:
+    - Tight upper bound on growth
+    - Function of size of input
+    - In the worst case
+
+## Complexity Classes
+
+| Complexity Class | Meaning                  |
+|:----------------:|:------------------------:|
+| *O(1)*           | Constant Running Time    |
+| *O(log n)*       | Logarithmic Running Time |
+| *O(n)*           | Linear Running Time      |
+| *O(n log n)*     | Log-Linear Running Time  |
+| *O(n^c^)*        | Polynomial Running Time  |
+| *O(c^n^)*        | Exponential Running Time |
+
+# Classes of Complexity
+
+## Constant Complexity
+
+- Independent of inputs
+- Can have loops or recursive calls, but **ONLY IF** the number of iterations or calls is independent of the size of the input
+
+## Logarithmic Complexity
+
+- Complexity grows as log of size of one of its inputs
+
+### Bisection Search
+
+- Want to know if a particular element is present in a list
+- Suppose we know that the list is ordered from smallest to largest
+- The Bisection Search Algorithm is:
+    1. Pick an index, `i`, that divides list in half
+    2. Ask if `L[i] == e`
+    3. If not, as if `L[i]` is larger or smaller than `e`
+    4. Depending on the answer, search left or right half of `L` for `e`
+- The complexity is *O(log n)*
+    - Divide list in half each time: n, n/2, n/2^2^ = n/4, *etc*.
+    - Could cut list in half as much as i times: n/2^i^
+    - Therefore, i = log n and overall complexity is *O(log n)*
+
+```{python}
+#> Implementation #1 (Recursive)
+def bisect_search(L, e):
+    ##> Constant O(1)
+    if L == []:
+        return False
+    
+    ##> Constant O(1)
+    elif len(L) == 1:
+        return L[0] == e
+    
+    else:
+        ##> Constant O(1)
+        half = len(L) // 2
+        
+        ##> NOT constant, since `L[ :half]` and `L[half: ]` copy the list
+        if L[half] > e:
+            return bisect_search(L[ :half], e)
+        else:
+            return bisect_search(L[half: ], e)
+
+#> O(log n) bisection search calls (each recursive call splits list in half)
+#> O(n) for each bisection search call to copy the list
+#> Overall complexity = O(log n) * O(n) = O(n log n)
+```
+
+```{python}
+def bisect_search(L, e):
+    def bisect_search_helper(L, e, lo, hi):
+        if hi == lo:
+            return L[lo] == e
+        
+        mid = (lo + hi) // 2
+
+        if L[mid] == e:
+            return True
+        
+        elif L[mid] > e:
+            ##> Nothing left to search
+            if lo == mid:
+                return False
+            
+            ##> Consant other than the recursive call
+            else:
+                return bisect_search_helper(L, e, lo, mid - 1)
+        
+        ##> Consant other than the recursive call
+        else:
+            return bisect_search_helper(L, e, mid + 1, hi)
+        
+    if len(L) == 0:
+        return False
+    
+    ##> Consant other than the recursive call
+    else:
+        return bisect_search_helper(L, e, 0, len(L) - 1)
+
+#> O(log n) bisection search calls (each recursive call splits list in half)
+#> Pass list and indices as parameters to helper function so that the list is never copied
+#> Overall complexity = O(log n) * O(1) = O(log n)
+```
+
+### `while` Loop
+
+```{python}
+def intToStr(i):
+    digits = '0123456789'
+
+    if i == 0:
+        return 0
+    
+    result = ''
+
+    while i > 0:
+        result = digits[i%10] + res
+        i = i // 10
+    
+    return result
+
+#> No function calls, constant number of steps within while loop
+#> How many times can i by divided by 10? Log(i) times
+#> Overall complexity = O(log(n)) where n = i
+```
+
+## Linear Complexity
+
+- See previous set of lecture notes
+- Calculating a factorial iteratively
+
+```{python}
+def fact_iter(n):
+    prod = 1
+
+    for i in range(1, n + 1):
+        prod *= i
+    
+    return prod
+
+#> Executes the loop n times
+#> Overall complexity = O(n) 
+```
+
+- Calculating a factorial recursively
+
+```{python}
+def fact_recur(n):
+    """Assume n >= 0"""
+    if n <= 1:
+        return 1
+    else:
+        return n * fact_recur(n - 1)
+
+#> Number of function calls is linear in n
+#> Overall complexity (still) = O(n)
+```
+
+- Iterative and recursive factorial implementations are the same order of growth
+
+## Log-Linear Complexity
+
+- Many practical algorithms are log-linear (*e.g.*, merge sort)
+- Will return to this in the next set of lecture notes
+
+## Polynomial Complexity
+
+- See previous set of lecture notes
+- Most common polynomial algorithms are quadratic
+- Commonly occurs with nested loops or recursive function calls
+
+## Exponential Complexity
+
+- Recursive functions where more more than one recursive call for each size of the problem
+- Many important problems are inherently exponential
+    - Unfortunate, as cost can be high
+    - Leads to considering approximate solutions as may provide reasonable answer more quickly
+- Example: Power Set
+    - Given a set of integers (with no repeats), want to generate the collection of all possible subsets
+        - `{}, {1}, {2}, {1,2}, {3}, {1,3}, {2,3}, {1,2,3}, ...`
+    - Want to generate the power set of integers from 1 to n
+    - Assume that we can generate power set of integers from 1 to n - 1
+    - All those subsets belong to a bigger power set
+    - All of those subsets with n added to each of them also belong to the bigger power set
+
+```{python}
+def genSubsets(L):
+    #> The empty set
+    if len(L) == 0:
+        return [[]]
+    
+    #> All subsets without the last element
+    smaller = genSubsets(L[ :-1])
+
+    #> Create a list of just last element
+    extra = L[-1: ]
+    new = []
+
+    for small in smaller:
+        #> For all smaller solutions, add one with last element
+        new.append(small + extra)
+    
+    #> Combine those with last element and those without
+    return smaller + new
+
+#> Assume append is constant time
+#> Total time includes
+#>   1. Time to solve smaller problem
+#>   2. Time needed to make a copy of all elements in the smaller problem
+#> For a set of size k there are 2^k cases
+#> Total complexity = O(2^n)
+```
+
+# Examples of Analyzing Complexity
+
+## Iterative Fibonacci
+
+- Best case: O(1)
+- Worst case: O(1) + O(n) + O(1) -> O(n)
+
+```{python}
+def fib_iter(n):
+    #> Constant O(1)
+    if n == 0:
+        return 0
+    
+    #> Constant O(1)
+    elif n == 1:
+        return 1
+    
+    else:
+        fib_i = 0
+        fib_ii = 1
+
+        #> Linear O(n)
+        for i in range(n - 1):
+            tmp = fib_i
+            fib_i = fib_ii
+            fib_ii = tmp + fib_ii
+    
+        return fib_ii
+```
+
+## Recursive Fibonacci
+
+- Worst case: O(2^n^)
+
+```{python}
+def fib_recur(n):
+    """ Assumes n is an int >= 0 """
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return fib_recur(n - 1) + fib_recur(n - 2)
+
+#> Produces 2 recursive calls for each regular call
+#> Classic behavior exponential time complexity
+#> Total complexity = O(2^n)
+```
+
+# Complexity of Common Python Functions
+
+| Data Type  | Function  | Complexity                     |
+|:----------:|:---------:|:------------------------------:|
+| List       | index     | *O(1)*                         |
+| List       | store     | *O(1)*                         |
+| List       | length    | *O(1)*                         |
+| List       | append    | *O(1)*                         |
+| List       | ==        | *O(n)*                         |
+| List       | remove    | *O(n)*                         |
+| List       | copy      | *O(n)*                         |
+| List       | reverse   | *O(n)*                         |
+| List       | iteration | *O(n)*                         |
+| List       | in list   | *O(n)*                         |
+| Dictionary | index     | *O(n)* (worst), *O(1)* average |
+| Dictionary | store     | *O(n)* (worst), *O(1)* average |
+| Dictionary | length    | *O(n)* (worst)                 |
+| Dictionary | delete    | *O(n)* (worst), *O(1)* average |
+| Dictionary | iteration | *O(n)* (worst)                 |
