@@ -1,0 +1,350 @@
+---
+title: MIT 6.0001 - Lecture 10 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec10/)
+
+Topics covered in this lecture:
+
+- Measuring Orders of Growth of Algorithms
+- Big "Oh" Notation
+- Complexity Classes
+
+# Understand Efficiency of Algorithms
+
+- Separate time and space efficiency of a program (tradeoff)
+    - Can sometimes pre-compute results and store them to lookup later
+    - This speeds up the program, but uses more computer memory
+- Challenges in understanding efficiency of solution to a computational problem
+    - A program can be implemented in many different ways
+    - A problem can be solved using only a handful of different algorithms
+    - Would like to separate choices of implementation from choices of more abstract algorithm
+
+# Evaluate Algorithm Efficiency
+
+- Measure with a timer
+- Count the operations
+- Abstract notion of "order of growth"
+
+## Timing a Program
+
+```{python}
+import timeit
+
+def c_to_f(c):
+    return c * (9.0 / 5) + 32
+
+start = timeit.timeit()
+c_to_f(100_000)
+end = timeit.timeit()
+
+print("t = ", round(end - start, 5), "s")
+```
+
+- Pros
+    - Running time varies between algorithms
+- Cons
+    - Running time varies between implementations
+    - Running time varies between computers
+    - Running time is not predictable based on small inputs
+
+## Counting Operations
+
+- Assume that these steps take constant time:
+    - Mathematical Operations
+    - Comparisons
+    - Assignments
+    - Accessing objects in memory
+- Count the number of operations executed as function of size of input
+
+```{python}
+def c_to_f(c):
+    #> 3 operations
+    return c * (9.0 / 5) + 32
+
+def mysum(x):
+    #> 1 operation
+    total = 0
+
+    #> Loop x times
+    ##> 1 operation
+    for i in range(x+1):
+        #> 2 operations
+        total += i
+    
+    return total
+
+#> `c_to_f`: 3 operations
+#> `mysum`: 1 + 3x operations
+```
+
+- Pros
+    - Count depends on algorithm
+    - Count independent of computers
+- Cons
+    - Count depends on implementation
+    - No clear definition of which operations to count
+
+## Orders of Growth
+
+- Idea of counting operations in an algorithm, but not worrying about small variations in implementation
+    - *E.g.*, whether 3 or 4 primitive operations are executed in a loop
+- Focus instead on how the algorithm performs when size of problem gets arbitrarily large
+- Relate time needed to complete a computation against size of the input to the problem
+
+### Which Input to Evaluate
+
+- Want to express efficiency in terms of size of input, so need to decide what input is
+    - Could be an integer: `my_sum(x)`
+    - Could be length of a list: `list_sum(L)`
+- For a function that searches for an element in a list
+    - Best Case: when `e` is first element in the list
+    - Worst Case: when `e` is not in the list
+    - Average Case: when `e` is about halfway in the list
+
+```{python}
+def search_for_elmt(L, e):
+    for i in L:
+        if i == 3:
+            return True
+    
+    return False
+```
+
+- Want to measure the behavior in a general way
+
+### Best, Worst, Average Cases
+
+- If given a list `L` of some length `len(L)`
+- Best Case: minimum running time over all possible inputs of a given size
+    - First element in the list
+    - Constant time
+- Worst Case: maximum running time over all possible inputs of a given size
+    - Must search entire list and not find it
+    - Linear in length of list
+- Average Case: average running time over all possible inputs of a given size
+    - Somewhere between constant and linear time
+
+### Goals
+
+- Want to evaluate program's efficiency when input is very big
+- Want to express the growth of program's run time as input size grows
+- Want to put an **upper bound** on growth (as tight as possible)
+- Do not need to be precise
+    - Going for "order of" not "exact" growth
+- Look at the **largest factors** in run time
+    - Which section of the program will take the longest to run
+- In general, want:
+    - Tight upper bound on growth
+    - Function of size of input
+    - In the worst case
+
+# Big "Oh" Notation
+
+- Measures an upper bound on the asymptotic growth (order of growth)
+- Denoted as *O()*
+- Used to describe the worst case
+    - Worst case occurs often and is the bottleneck when a program runs
+    - Express rate of growth of program relative to the input size
+    - Evaluates the algorith, not the machine or implementation
+
+## What Does It Measure?
+
+- Interested in describing how amount of time needed grows as size of problem grows
+- Given an expression for the number of operations needed to compute an algorithm, want to know asymptotic behavior as size of problem gets large
+- Focus on term that grows most rapidly in a sum of terms
+- Ignore multiplicative constants
+    - Want to know how rapidly time required increases as increase size of input
+    - Focus on dominant terms
+
+| Sum of Terms               | Time Complexity |
+|:--------------------------:|:---------------:|
+| n^2^ + 2n + 2              | *O(n^2^)*       |
+| n^2^ + 100000n + 3^1000^   | *O(n^2^)*       |
+| log(n) + n + 4             | *O(n)*          |
+| 0.0001 * n * log(n) + 300n | *O(n log(n))*   |
+| 2n^30^ + 3^n^              | *O(3^n^)*       |
+
+## Analyzing Programs and Their Complexity
+
+- Combine complexity cases
+    - Analyze statements inside functions
+    - Apply some rules
+    - Focus on the dominant term
+- Law of Addition for *O()*
+    - Used with sequential statements
+    - O(f(n)) + O(g(n)) = O(f(n) + g(n))
+
+```{python}
+#| eval: false
+
+for i in range(n):
+    print('a')
+
+for j in range(n*n):
+    print('b')
+
+#> Total = O(n) + O(n*n) = O(n + n^2) = O(n^2) because of the dominant term
+```
+
+- Law of Multiplication for *O()*
+    - Used with nested statements/loops
+    - O(f(n)) * O(g(n)) = O(f(n) * g(n))
+
+```{python}
+#| eval: false
+
+for i in range(n):
+    for j in range(n):
+        print('a')
+
+#> Total = O(n) * O(n) = O(n*n) = O(n^2)
+```
+
+# Complexity Classes
+
+| Complexity Class | Meaning                  |
+|:----------------:|:------------------------:|
+| *O(1)*           | Constant Running Time    |
+| *O(log n)*       | Logarithmic Running Time |
+| *O(n)*           | Linear Running Time      |
+| *O(n log n)*     | Log-Linear Running Time  |
+| *O(n^c^)*        | Polynomial Running Time  |
+| *O(c^n^)*        | Exponential Running Time |
+
+## Linear Complexity
+
+- Simple iterative loop algorithms are typically linear in complexity
+
+```{python}
+#> Linear Search on UNSORTED list
+def linear_search(L, e):
+    for i in range(len(L)):
+        if e == L[i]:
+            return True
+    
+    return False
+
+#> Must look through all elements to decide it is not there
+#> Returning early speeds up the algorithm a little, but it does not impact the worst case
+#> Overall complexity is O(n) where n is `len(L)`
+```
+
+```{python}
+#> Linear Search on SORTED list
+def linear_search(L, e):
+    for i in range(len(L)):
+        if L[i] == e:
+            return True
+        if L[i] > e:
+            return False
+    
+    return False
+
+#> Only have to look until a number greater than e is reached
+#> Worst case is still having to look at the entire list
+#> Overall complexity is still O(n) where n is `len(L)`
+```
+
+- Add characters of a string, assumed to be composed of decimal digits
+
+```{python}
+def addDigits(s):
+    val = 0
+    
+    for c in s:
+        val += int(c)
+    
+    return val
+
+#> Overall complexity is O(n) where n is `len(s)` (have to iterate entirely through `s`)
+```
+
+- Often depends on number of iterations
+
+```{python}
+def fact_iter(n):
+    prod = 1
+
+    for i in range(1, n + 1):
+        prod *= i
+    
+    return prod
+
+#> Number of times through the loop = n
+#> Number of operations inside loop is a constant
+#> Overall complexity is therefore O(n)
+```
+
+## Quadratic Complexity
+
+- Nested Loops
+    - Simple loops are linear in complexity
+    - Nested loops are quadratic in complexity
+
+- Determine if one list is a subset of a second list
+
+```{python}
+def isSubset(L1, L2):
+    for e1 in L1:
+        matched = False
+
+        for e2 in L2:
+            if e1 == e2:
+                matched = True
+                break
+        
+        if not matched:
+            return False
+    
+    return True
+
+#> Outer loop executes `len(L1)` times
+#> Each iteration of outer loop will execute inner loop up to `len(L2)` times
+#> Worst case is when L1 and L2 are the same length
+#> Overall complexity is O(n^2) where n is `len(L1)`
+```
+
+- Find intersection of two lists, return a list with each element appearing only once
+
+```{python}
+def intersect(L1, L2):
+    tmp = []
+
+    for e1 in L1:
+        for e2 in L2:
+            if e1 == e2:
+                tmp.append(e1)
+        
+    res = []
+
+    for e in tmp:
+        if not(e in res):
+            res.append(e)
+    
+    return res
+
+#> First nested loop takes `len(L1) * len(L2)` steps
+#> Second loop takes at most `len(L1)` steps
+#> Overall complexity is O(n*n) + O(n) = O(n^2) where n is `len(L1)`
+```
+
+- *O()* For Nested Loops
+    - Look at the ranges
+
+```{python}
+def g(n):
+    """Assume n >= 0"""
+    x = 0
+
+    for i in range(n):
+        for j in range(n):
+            x+= 1
+    
+    return x
+
+#> Each loop is iterating n times
+#> Overall complexity is O(n^2)
+```
