@@ -1,0 +1,250 @@
+---
+title: MIT 6.0001 - Lecture 12 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/resources/mit6_0001f16_lec12/)
+
+Topics covered in this lecture:
+
+- Linear Search Algorithm
+- Bisection Search Algorithm
+- Monkey Sort Algorithm
+- Bubble Sort
+- Selection Sort
+- Merge Sort
+  
+# Search Algorithms
+
+- Method for finding an item or group of items with specific properties within a collection of items
+- The collection could be *implicit* or *explicit*
+- Two algorithms covered here:
+    1. Linear Search
+        - Brute force
+        - List does not have to be sorted
+    2. Bisection Search
+        - List DOES have to be sorted
+
+## Linear Search
+
+- Simply look through each item in the list one at a time
+
+```{python}
+def linear_search(L, e):
+    found = False
+
+    for i in range(len(L)):
+        if e == L[i]:
+            found = True
+    
+    return found
+```
+
+- In worst case, must look through all elements of the list
+  - O(`len(L)`) for the loop
+  - O(1) to test if `e == L[i]`
+  - Overall complexity is therefore O(n)
+
+## Bisection Search
+
+- Steps:
+    1. Pick an index, `i`, that divides the list in half
+    2. Ask if `L[i] == e`
+    3. If not, ask if `L[i]` is larger or smaller than `e`
+    4. Depending on the answer, search the left or right half of `L` for `e`
+
+```{python}
+def bisection_search(L, e):
+    def bisect_search_helper(L, e, low, high):
+        if high == low:
+            return L[low] == e
+        
+        mid = (low + high) // 2
+
+        if L[mid] == e:
+            return True
+        elif L[mid] > e:
+            if low == mid:
+                return False
+            else:
+                return bisect_search_helper(L, e, low, mid - 1)
+        else:
+            return bisect_search_helper(L, e, mid + 1, high)
+        
+    if len(L) == 0:
+        return False
+    else:
+        return bisect_search_helper(L, e, 0, len(L) - 1)
+```
+
+- A divide-and-conquer algorithm
+  - Break into smaller version of problem (smaller list)
+  - Answer to smaller version if answer to original problem
+- Problem size is reduced by a factor of 2 on each step
+  - Using the helper function, the list is never copied
+  - Constant work inside the function
+  - Overall complexity is therefore O(log n)
+
+## Searching a Sorted List
+
+- Using linear search, O(n)
+- Using binary search, O(log n)
+- It therefore makes sense to sort first then search when:
+  - Sort + O(log n) < O(n)
+  - Sort < O(n) - O(log n)
+- Why sort first?
+  - In some cases, a list may be sorted once and many searches performed
+  - This ammortizes the cost of the sort over many searches
+    - Sort + K * O(log n) < K * O(n)
+
+# Sort Algorithms
+
+- Want to efficiently sort a list of enteries, typically numbers
+
+## Monkey Sort
+
+- Also called bogosort, stupid sort, slow sort, permutation sort, shotgun sort, etc.
+- For example, to sort a deck of cards:
+    1. Throw them up in the air
+    2. Pick them up
+    3. Are they sorted?
+    4. If yes, done; if not, repeat until sorted
+
+```{python}
+#| eval: false
+
+import random
+
+def monkey_sort(L):
+    while not is_sorted(L):
+        random.shuffle(L)
+```
+
+- Complexity
+  - Best case: O(n) where `n = len(L)` to check if sorted
+  - Worse case: unbounded if really unlucky and list never gets sorted
+
+## Bubble Sort
+
+- Steps:
+    1. Compare consecutive pairs of elements
+    2. Swap elements in pairs such that smaller is first
+    3. When end of list is reached, start over again
+    4. Stop when no more swaps have been made
+
+```{python}
+def bubble_sort(L):
+    swap = False
+
+    while not swap:
+        swap = True
+
+        for j in range(1, len(L)):
+            if L[j - 1] > L[j]:
+                swap = False
+                temp = L[j]
+                L[j] = L[j-1]
+                L[j-1] = temp
+```
+
+- Complexity
+  - The largest unsorted element is always at the end after every pass, so at most n passes
+  - Inner for loop is for doing the comparisons
+  - Outer while loop is for doing multiple passes until no more swaps
+  - O(n^2) where `n = len(L)` to do `len(L) - 1` comparisons and `len(L) - 1` passes
+
+## Selection Sort
+
+- Steps:
+    1. Extract the minimum element
+    2. Swap it with element at index 0
+    3. Repeat steps 1 & 2 with the remaining sublist
+    4. Keep the left portion of the sorted list
+
+```{python}
+def selection_sort(L):
+    suffixSt = 0
+
+    while suffixSt != len(L):
+        for i in range(suffixSt, len(L)):
+            if L[i] < L[suffixSt]:
+                L[suffixSt], L[i] = L[i], L[suffixSt]
+        
+        suffixSt += 1
+```
+
+- Complexity
+  - At the i-th step, the first i elements in the list are sorted
+    - All other elements are bigger than the first i elements
+  - Outer loop executes `len(L)` times
+  - Inner loop executes `len(L) - i` times
+  - Over complexity is O(n^2) where `n = len(L)`
+
+## Merge Sort
+
+- A divide-and-conquer approach
+- Steps:
+    1. If list is of length 0 or 1, it is already sorted
+    2. If list has more than one elements, split it into two lists and sort each
+    3. Merge the sorted lists together
+        - Look at the first element of each list and move the smaller one to the end of the result
+        - When one list is empty, copy the rest of the other list to the result
+
+```{python}
+def merge(left, right):
+    result = []
+    i, j = 0, 0
+
+    while i < len(left) and j < len(right):
+        if left[i] < right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+    
+    while i < len(left):
+        result.append(left[i])
+        i += 1
+    
+    while j < len(right):
+        result.append(right[j])
+        j += 1
+    
+    return result
+```
+
+- Complexity of the merge sub-step:
+  - A single pass of each list
+  - O(`len(left) + len(right)`) copied elements
+  - O(length of longer list) comparisons
+  - Overall complexity is linear in the length of the lists
+
+```{python}
+def merge_sort(L):
+    #> Base case
+    if len(L) < 2:
+        return L[:]
+    
+    #> All other cases
+    else:
+        middle = len(L) // 2
+        left = merge_sort(L[ :middle])
+        right = merge_sort(L[middle: ])
+
+        return merge(left, right)
+```
+
+- Complexity of merge sort
+  - At first recursion level:
+    - `n / 2` elements in each list
+    - O(n) + O(n) = O(n), where `n = len(L)`
+  - At second recursion level:
+    - `n / 4` elements in each list
+    - Two merges, still O(n) where `n = len(L)`
+  - Each recursion level is O(n) where `n = len(L)`
+  - Dividing the list in half at each recursive call is O(log(n)) where `n = len(L)`
+  - Overall complexity is O(n log(n)) where `n = len(L)`
+
+- Merge sort appears to be the fastest that a sort can be
