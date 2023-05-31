@@ -25,4 +25,4 @@ The goals of this course are:
 | 09      | Python Classes and Inheritance                                  | Pset 4         | X         |
 | 10      | Understanding Program Efficiency, Part 1                        | Pset 5         | X         |
 | 11      | Understanding Program Efficiency, Part 2                        | Pset 5         | X         |
-| 12      | Searching and Sorting                                           | Pset 5         |           |
+| 12      | Searching and Sorting                                           | Pset 5         | X         |
