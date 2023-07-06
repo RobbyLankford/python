@@ -13,7 +13,7 @@
 | Lecture | Topic(s)                                                        | Assignments    | Completed |
 |:-------:|:---------------------------------------------------------------:|:--------------:|:---------:|
 | 01      | Introduction and Optimization Problems                          | Pset 1         | X         |
-| 02      | Optimization Problems                                           | Pset 1         |           |
+| 02      | Optimization Problems                                           | Pset 1         | X         |
 | 03      | Graph-Theoretic Models                                          | Pset 1         |           |
 | 04      | Stochastic Thinking                                             | Pset 1, Pset 2 |           |
 | 05      | Random Walks                                                    | Pset 2         |           |
