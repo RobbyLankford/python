@@ -1,0 +1,131 @@
+---
+title: MIT 6.0002 - Lecture 2 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/mit6_0002f16_lec2/)
+
+Topics covered in this lecture:
+
+- Greedy Algorithms
+- Brute Force Algorithms
+- Dynamic Programming
+
+# Greedy Algorithms (cont.)
+- Pros
+  - Easy to implement (usually)
+  - Computationally efficient
+- Cons
+  - Does not always yield the best solution
+  - Most of the time, do not even know how good the approximation is
+
+# Brute Force Algorithms
+
+## General Steps
+1. Enumerate all possible combinations of items
+2. Remove all the combinations that do not meet the restriction(s)
+3. From the remaining combinations, choose any one who maximizes/minimizes the objective
+
+## Search Tree
+
+### Steps
+- The tree is built top down starting with the root
+- The first element is selected from the still-to-be-considered items
+  - If that element meets the restriction(s), a node is constructed that reflects the consequences of choosing that element (by convention, draw it as the left child)
+  - Also explore the consequences of **not** taking that item (by convention, draw it as the right child)
+- The process is applied *recursively* to non-leaf children
+- Choose a node with the highest value that meets constraint(s)
+
+### Computational Complexity
+- Time based on the number of nodes generated
+- The number of levels is the number of items from which to choose
+- The number of nodes at level *i* is $2^i$
+  - At each level, two choices are explored (take the element or not)
+- If there are *n* items, then the number of nodes is: $\sum_{i=0}^{i=n} 2^{i}$
+- Thus, the computational complexity is O(2^n+1^) or more simply O(2^n^), exponential
+- We *could* try to optimize by not exploring parts of the tree that violate constraints, but this would not change the complexity
+  
+### Implementation for 0/1 Knapsack
+
+```{python}
+def maxVal(toConsider, avail):
+  """`toConsider` is a list of items
+     `avail` is the amount of space still available
+     Returns a tuple of the total value of a solution to 0/1 knapsack
+     problem at the items of that solution"""
+  
+  if toConsider == [] or avail == 0:
+    result = (0, ())
+  
+  elif toConsider[0].getUnits() > avail:
+    #> Next item is more than what is still available
+    result = maxVal(toConsider[1: ], avail)
+  
+  else:
+    nextItem = toConsider[0]
+
+    #> Check left (take the item) vs right (do not take the item)
+    withVal, withToTake = maxVal(toConsider[1: ], avail - nextItem.getUnits())
+    withVal += nextItem.getValue()
+    withoutVal, withoutToTake = maxVal(toConsider[1: ], avail)
+  
+  if withVal > withoutVal:
+    result = (withVal, withToTake + (nextItem, ))
+  else:
+    result = (withoutVal, withoutToTake)
+  
+  return result
+```
+
+# Dynamic Programming
+
+## Definition
+- An algorithmic problem that is:
+  1. Broken down into sub-problems
+  2. Results of the sub-problems are saved
+  3. The sub-problems are optimized to find the overall solution
+
+## Example: Fibonnaci
+- The recursive implementation of Fibonnaci repeats the same calls multiple times
+  - For example `fib(6)` calls `fib(4)` twice, `fib(3)` thrice, and so on
+
+```{python}
+def fib(n):
+  if n == 0 or n == 1:
+    return 1
+  else:
+    return fib(n - 1) + fib(n - 2)
+```
+
+- Can create a table to record what has already been calculated
+  - Before calculating `fib(x)`, check if the result is already stored in the table
+  - This is called **memoization**
+
+```{python}
+def fastFib(n, memo = {}):
+  """Assumes `n` is an int >= 0, `memo` used only by recursive calls
+     Returns Fibonacci of n"""
+  if n == 0 or n == 1:
+    return 1
+  
+  try:
+    return memo[n]
+  except KeyError:
+    result = fastFib(n - 1, memo) + fastFib(n - 2, memo)
+    memo[n] = result
+
+    return result
+```
+
+## When to Use
+- Optimial Subsctructure
+  - A globally optimal solution can be found by combining optimal solutions to local subproblems
+- Overlapping Subproblems
+  - Finding an optimal solution involves solving the same problem multiple times
+
+# Summary of Lectures 1 & 2
+- Many problems of practical importance can be formulated as optimization problems
+- Greedy Algorithms often provide adequate (though not necessarily optimal) solutions
+- Finding an optimal solution is usually exponentially hard
+- Dynamic Programming often yields good performance for a subclass of optimization problems
