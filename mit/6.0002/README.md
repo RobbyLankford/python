@@ -14,7 +14,7 @@
 |:-------:|:---------------------------------------------------------------:|:--------------:|:---------:|
 | 01      | Introduction and Optimization Problems                          | Pset 1         | X         |
 | 02      | Optimization Problems                                           | Pset 1         | X         |
-| 03      | Graph-Theoretic Models                                          | Pset 1         |           |
+| 03      | Graph-Theoretic Models                                          | Pset 1         | X         |
 | 04      | Stochastic Thinking                                             | Pset 1, Pset 2 |           |
 | 05      | Random Walks                                                    | Pset 2         |           |
 | 06      | Monte Carlo Simulation                                          | Pset 2, Pset 3 |           |
