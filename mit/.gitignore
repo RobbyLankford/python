@@ -3,3 +3,5 @@ libs/
 scratch-work/
 *.html
 *.pdf
+__pycache__/
+test.py
