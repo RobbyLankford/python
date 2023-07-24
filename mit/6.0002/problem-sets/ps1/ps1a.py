@@ -1,12 +1,11 @@
-###########################
 # 6.0002 Problem Set 1a: Space Cows 
-
-from ps1_partition import get_partitions
-import time
 
 #================================
 # Part A: Transporting Space Cows
 #================================
+
+from ps1_partition import get_partitions
+import time
 
 # Problem 1
 def load_cows(filename):
