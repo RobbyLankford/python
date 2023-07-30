@@ -5,3 +5,4 @@ scratch-work/
 *.pdf
 __pycache__/
 test.py
+*_files/
