@@ -1,0 +1,157 @@
+---
+title: MIT 6.0002 - Lecture 4 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/mit6_0002f16_lec4/)
+
+Topics covered in this lecture:
+
+- Stochastic Processes
+- Random Walks
+
+# Stochastic Processes
+
+## Background
+
+- An ongoing process where the next state might depend on both the previous state *and some random element*
+
+## Implementing a Random Process
+
+```{python}
+import random
+
+def rollDie():
+    """returns a random int between 1 and 6"""
+    return random.choice([1, 2, 3, 4, 5, 6])
+
+def testRoll(n=10):
+    result = ''
+    for i in range(n):
+        result += str(rollDie())
+    
+    print(result)
+
+testRoll(5)
+```
+
+## Probability
+
+### Calculating
+
+- In `rollDie`, how probable is '11111'?
+  - Count the number of possible events
+  - Count the number of events that have the property of interest
+  - Divide on by another: $1 / (6^5) = 0.0001286$
+
+### Independence
+
+- Two events are *independent* if the outcome of one event has **no influence** on the outcome of the other
+- When events are independent of each other, the probability of all the events occuring is equal to the *product* of the probabilities of each of the events occuring
+
+## Simulation
+
+- A description of computations that provide useful information about the possible behaviors of the system being modeled
+  - It is descriptive, not prescriptive, and is only an approximation to reality
+  - Can be used to model systems that are mathematically intractable
+- Can use simulation to test if theoretical probability is correct
+  - Here, we test the probability of rolling 5 1s on a die
+  - Note that it takes many, many trials to get a good estimate
+
+```{python}
+def runSim(goal, numTrials, txt):
+    total = 0
+    for i in range(numTrials):
+        result = ''
+        for j in range(len(goal)):
+            result += str(rollDie())
+        
+        if result == goal:
+            total += 1
+    
+    estProb = round(total/numTrials, 8)
+
+    print("Actual probability of", txt, "=", round(1 / (6**len(goal)), 8))
+    print("Estimated probability of", txt, "=", estProb)
+
+runSim("11111", 1_000_000, "11111")
+```
+
+## Approximating Using a Simulation
+
+- Can approximate the probability of at least two people in a group having the same birthday
+
+```{python}
+import math
+
+def sameDate(numPeople, numSame):
+    possibleDates = range(366)
+    birthdays = [0] * 366
+
+    for p in range(numPeople):
+        birthDate = random.choice(possibleDates)
+        birthdays[birthDate] += 1
+    
+    return max(birthdays) >= numSame
+
+def birthdayProb(numPeople, numSame, numTrials):
+    numHits = 0
+
+    for t in range(numTrials):
+        if sameDate(numPeople, numSame):
+            numHits += 1
+    
+    return numHits / numTrials
+
+for numPeople in [10, 20, 40, 100]:
+    numerator = math.factorial(366)
+    denominator = (366 ** numPeople) * math.factorial(366 - numPeople)
+    
+    print("For", numPeople, "people:")
+    print("Estimated probability is:", birthdayProb(numPeople, 2, 10_000))
+    print("Actual probability is:", 1 - (numerator / denominator))
+    print()
+```
+
+- But what if the probability of a birthday being on any given date is not uniform?
+  - Simulation can be extremely helpful with this situation
+
+```{python}
+def sameDate(numPeople, numSame):
+    possibleDates = (4 * list(range(0, 57))) \
+                    + [58] \
+                    + (4 * list(range(59, 366))) \
+                    + (4 * list(range(180, 270)))
+    birthdays = [0] * 366
+
+    for p in range(numPeople):
+        birthDate = random.choice(possibleDates)
+        birthdays[birthDate] += 1
+    
+    return max(birthdays) >= numSame
+
+def birthdayProb(numPeople, numSame, numTrials):
+    numHits = 0
+
+    for t in range(numTrials):
+        if sameDate(numPeople, numSame):
+            numHits += 1
+    
+    return numHits / numTrials
+
+for numPeople in [10, 20, 40, 100]:
+    numerator = math.factorial(366)
+    denominator = (366 ** numPeople) * math.factorial(366 - numPeople)
+    
+    print("For", numPeople, "people:")
+    print("Estimated non-uniform probability is:", birthdayProb(numPeople, 2, 10_000))
+    print("Uniform probability is:", 1 - (numerator / denominator))
+    print()
+```
+
+# Random Walks
+
+- Movements of an object or changes in a variable that follow no discernible pattern
+- Important in many domains
+- Good illustration of how to use simulations to understand things
