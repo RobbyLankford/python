@@ -17,7 +17,7 @@
 | 03      | Graph-Theoretic Models                                          | Pset 1         | X         |
 | 04      | Stochastic Thinking                                             | Pset 1, Pset 2 | X         |
 | 05      | Random Walks                                                    | Pset 2         | X         |
-| 06      | Monte Carlo Simulation                                          | Pset 2, Pset 3 |           |
+| 06      | Monte Carlo Simulation                                          | Pset 2, Pset 3 | X         |
 | 07      | Confidence Intervals                                            | Pset 3         |           |
 | 08      | Sampling and Standard Error                                     | Pset 3, Pset 4 |           |
 | 09      | Understanding Experimental Data, Part 1                         | Pset 4, Pset 5 |           |
