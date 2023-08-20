@@ -1,0 +1,353 @@
+---
+title: MIT 6.0002 - Lecture 7 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/mit6_0002f16_lec8/)
+
+Topics covered in this lecture:
+
+- Probability Sampling
+- Standard Error
+
+# Recall: Inferential Statistics
+
+- Making inferences about a populations by examining one or more random samples drawn from that population
+- With Monte Carlo simulation, we can generate lots of random samples and use them to compute confidence intervals
+- But what if we cannot create samples by simulation?
+
+# Probability Sampling
+
+## Background
+
+- Each member of the population has a non-zero probability of being included in a sample
+- **Simple Random Sampling**: each member has an equal chance of being chosen
+- **Stratified Sampling**: partition population into subgroups and take a simple random sample from each subgroup
+  - When there are small subgroups that should be represented
+  - When it is important that subgroups be represented proportionally to their size in the population
+  - Can be used to reduce the needed size of sample
+    - Variability of subgroups less than of entire population
+  - Requires care to do properly
+
+## Plots of Data
+
+- Foundational functions
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+def makeHist(data, title, xlabel, ylabel, bins=20):
+    plt.hist(data, bins=bins)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+
+def getHighs():
+    inFile = open("temperatures.csv")
+    population = []
+
+    for l in inFile:
+        try:
+            tempC = float(l.split(',')[1])
+            population.append(tempC)
+        except:
+            continue
+    
+    return population
+
+def getMeansAndSDs(population, sample, verbose=False):
+    popMean = sum(population) / len(population)
+    sampMean = sum(sample) / len(sample)
+
+    if verbose:
+        makeHist(
+            population,
+            "Daily High 1961-2015, Population\n" + "(mean = " + str(round(popMean, 2)) + ")", "Degrees C", "Number Days"
+        )
+        plt.figure()
+        makeHist(
+            sample,
+            "Daily High 1961-2015, Sample\n" + "(mean = " + str(round(sampMean, 2)) + ")", "Degrees C", "Number Days"
+        )
+
+        print("Population mean =", popMean)
+        print("Standard deviation of population =", np.std(population))
+        print("Sample mean =", sampMean)
+        print("Standard deviation of sample =", np.std(sample))
+    
+    return popMean, sampMean, np.std(population), np.std(sample)
+```
+
+- Take Random Sample
+
+```{python}
+import random
+
+random.seed(0)
+
+population = getHighs()
+sample = random.sample(population, 100)
+```
+
+- Make Plots
+
+```{python}
+getMeansAndSDs(population, sample, True)
+```
+
+- Neither of these distributions appear normal
+  - The CLT suggests that the means of the samples will be normally distributed with repeated sampling
+  - So, take 1,000 samples of size 100
+
+```{python}
+random.seed(0)
+
+sampleSize = 100
+numSamples = 1000
+sampleMeans = []
+
+for i in range(numSamples):
+    sample = random.sample(population, sampleSize)
+    popMean, sampMean, popSD, sampSD = getMeansAndSDs(population, sample, False)
+    sampleMeans.append(sampMean)
+
+print("Mean of sample Means =", round(sum(sampleMeans) / len(sampleMeans), 3))
+print("Standard deviation of sample means =", round(np.std(sampleMeans), 3))
+
+makeHist(sampleMeans, "Means of Samples", "Mean", "Frequency")
+plt.axvline(x=popMean, color='r')
+```
+
+- Can now calculate the 95% confidence interval
+
+16.29 +/- (1.96 * 0.94)
+
+## Error Bars
+
+- Graphically representation of the variability of data
+- A way to visualize uncertainty
+
+```{python}
+def showErrorBars(population, sizes, numTrials):
+    xVals = []
+    sizeMeans, sizeSDs = [], []
+
+    for sampleSize in sizes:
+        xVals.append(sampleSize)
+        trialMeans = []
+
+        for t in range(numTrials):
+            sample = random.sample(population, sampleSize)
+            popMean, sampMean, popSD, sampSD = getMeansAndSDs(population, sample)
+            trialMeans.append(sampMean)
+        
+        sizeMeans.append(sum(trialMeans) / len(trialMeans))
+        sizeSDs.append(np.std(trialMeans))
+    
+    print(sizeSDs)
+
+    plt.errorbar(xVals, sizeMeans, yerr=(1.96 * np.array(sizeSDs)), fmt='o', label="95% Confidence Interval")
+    plt.title("Mean Temperature (" + str(numTrials) + " trials")
+    plt.xlabel("Sample Size")
+    plt.ylabel("Mean")
+    plt.axhline(y=popMean, color='r', label="Population Mean")
+    plt.xlim(0, sizes[-1] + 10)
+    plt.legend()
+```
+
+```{python}
+random.seed(0)
+
+showErrorBars(population, (50, 100, 200, 300, 400, 500, 600), 100)
+```
+
+- Larger sample sizes appear to shrink the error bar
+  - But many times this it is not possible to take that many samples
+  - At some point, you might as well just survey the entire population!
+
+# Standard Error
+
+- Recall item #3 from the Central Limit Theorem
+  - The variance of the sample means will be close to the variance of the population divided by the sample size (the standard error of the mean)
+
+$$
+SE = \frac{\sigma}{\sqrt{n}}
+$$
+
+```{python}
+def sem(popSD, sampleSize):
+    return popSD / (sampleSize ** 0.5)
+```
+
+- As sample size increases, standard deviation and standard error decreases
+
+```{python}
+sampleSizes = (25, 50, 100, 200, 300, 400, 500, 600)
+numTrials = 50
+popSD = np.std(population)
+sems = []
+sampleSDs = []
+
+random.seed(0)
+
+for size in sampleSizes:
+    sems.append(sem(popSD, size))
+    means = []
+
+    for t in range(numTrials):
+        sample = random.sample(population, size)
+        means.append(sum(sample) / len(sample))
+    
+    sampleSDs.append(np.std(means))
+
+plt.plot(sampleSizes, sampleSDs, label='STD of ' + str(numTrials) + ' means')
+plt.plot(sampleSizes, sems, 'r--', label='Standard Error of Mean')
+plt.xlabel('Sample Size')
+plt.ylabel('STD and SEM')
+plt.title('STD for ' + str(numTrials) + ' Means and SEM')
+plt.legend()
+```
+
+- However, we do not know the standard deviation of the population
+  - So, we use the sample standard deviation as an estimate
+  - Once sample reaches a reasonable size, sample standard deviation is a pretty good approximation to population standard deviation
+
+```{python}
+def getDiffs(population, sampleSizes):
+    popSTD = np.std(population)
+    diffsFracs = []
+
+    for sampleSize in sampleSizes:
+        diffs = []
+
+        for t in range(100):
+            sample = random.sample(population, sampleSize)
+            diffs.append(abs(popSTD - np.std(sample)))
+        
+        diffMean = sum(diffs) / len(diffs)
+        diffsFracs.append(diffMean / popSTD)
+    
+    return np.array(diffsFracs) * 100
+
+def plotDiffs(sampleSizes, diffs, title, label, color='b'):
+    plt.plot(sampleSizes, diffs, label=label, color=color)
+    plt.xlabel('Sample Size')
+    plt.ylabel('% Difference in STD')
+    plt.title(title)
+    plt.legend()
+
+random.seed(0)
+
+sampleSizes = range(20, 600, 1)
+diffs = getDiffs(getHighs(), sampleSizes)
+plotDiffs(sampleSizes, diffs, 'Sample STD vs Population STD, Temperatures', label='High Temps')
+```
+
+## Distributions
+
+- Three different distributions: Uniform, Normal, Exponential
+
+```{python}
+def plotDistributions():
+    uniform, normal, exp = [], [], []
+
+    for i in range(100_000):
+        uniform.append(random.random())
+        normal.append(random.gauss(0, 1))
+        exp.append(random.expovariate(0.5))
+    
+    makeHist(uniform, 'Uniform', 'Value', 'Frequency')
+    plt.figure()
+    makeHist(normal, 'Gaussian', 'Value', 'Frequency')
+    plt.figure()
+    makeHist(exp, 'Exponential', 'Value', 'Frequency')
+
+random.seed(0)
+
+plotDistributions()
+```
+
+- Does the distribution matter?
+  - Need to look at skew: a measure of the asymmetry of a probability distribution
+  - Exponential has high skew, uniform has no skew
+  - Therefore it takes uniform distribution fewer samples to approximate population standard deviation
+
+```{python}
+def compareDists():
+    uniform, normal, exp = [], [], []
+
+    for i in range(100_000):
+        uniform.append(random.random())
+        normal.append(random.gauss(0, 1))
+        exp.append(random.expovariate(0.5))
+    
+    sampleSizes = range(20, 600, 1)
+    udiffs = getDiffs(uniform, sampleSizes)
+    ndiffs = getDiffs(normal, sampleSizes)
+    ediffs = getDiffs(exp, sampleSizes)
+
+    plotDiffs(sampleSizes, udiffs, 'Sample STD vs Population SD', 'Uniform', 'm')
+    plotDiffs(sampleSizes, ndiffs, 'Sample STD vs Population STD', 'Normal', 'b')
+    plotDiffs(sampleSizes, ediffs, 'Sample STD vs Population STD', 'Exponential', 'r')
+
+random.seed(0)
+
+compareDists()
+```
+
+Does the population size matter?
+- No, it has no affect on the precision of the estimation
+
+```{python}
+popSizes = (10_000, 100_000, 1_000_000)
+sampleSizes = range(20, 600, 1)
+
+random.seed(0)
+
+for size in popSizes:
+    population = []
+
+    for i in range(size):
+        population.append(random.random())
+    
+    udiffs = getDiffs(population, sampleSizes)
+    
+    plotDiffs(
+        sampleSizes, 
+        udiffs, 
+        'Sample SD vs Population SD, Uniform', 
+        'Population size = ' + str(size)
+    )
+```
+
+- To estimate mean for a single sample
+  1. Choose sample size based on estimate of skew in population
+  2. Choose a random sample from the population
+  3. Compute the mean and standard deviation of that sample
+  4. Use the standard deviation of that sample to estimate the standard error
+  5. Use the estimated standard error to generate confidence intervals around the sample mean
+
+- Example, are 200 samples enough?
+  - The expected percentage of points fall inside the 95% confidence interval
+
+```{python}
+temps = getHighs()
+popMean = sum(temps) / len(temps)
+sampleSize = 200
+numTrials = 10_000
+
+random.seed(0)
+
+numBad = 0
+for t in range(numTrials):
+    sample = random.sample(temps, sampleSize)
+    sampleMean = sum(sample) / sampleSize
+    se = np.std(sample) / sampleSize ** 0.5
+    
+    if (abs(popMean - sampleMean) > (1.96 * se)):
+        numBad += 1
+
+print('Fraction outside 95% confidence interval=', numBad / numTrials)
+```
