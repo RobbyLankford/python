@@ -1,0 +1,267 @@
+---
+title: MIT 6.0002 - Lecture 9 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/mit6_0002f16_lec9/)
+
+Topics covered in this lecture:
+
+- Statistics Meets Experimental Science
+- Linear Regression
+- Mean Squared Error & R-Squared
+
+# Statistics Meets Experimental Science
+
+## Steps
+
+1. Conduct an experiment to gather data 
+2. Use theory to generate some questions about the data
+3. Design a computation to help answer questions about the data
+
+## Example - A Spring
+
+- Linear Spring: amount of force needed to stretch or compress is linear in the distance the spring is stretched or compressed
+  - Each spring has a spring constant *k* that determines how much force is needed, expressed in Newton / meters
+  - A Newton is the force to accelerate 1 kg mass 1 meter per second per second
+- Hooke's Law $F = -kd$
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def getData(fileName):
+    dataFile = open(fileName, 'r')
+    distances = []
+    masses = []
+    dataFile.readline() # discard header
+
+    for line in dataFile:
+        d, m = line.split()
+        distances.append(float(d))
+        masses.append(float(m))
+    dataFile.close()
+
+    return (masses, distances)
+
+def labelPlot():
+    plt.title('Measured Displacement of Spring')
+    plt.xlabel('|Force| (Newtons)')
+    plt.ylabel('Distance (meters)')
+
+def plotData(fileName):
+    xVals, yVals = getData(fileName)
+    xVals = np.array(xVals)
+    yVals = np.array(yVals)
+    xVals = xVals * 9.81 # gravity
+
+    plt.plot(xVals, yVals, 'bo', label='Measured Displacements')
+    labelPlot()
+
+plotData('springData.txt')
+```
+
+# Fitting Curves to Data
+
+## Background
+
+- Finding a fit that relates an independent variable (the mass) to an estimated value of a dependent variable (the distance)
+- To decide how well a curve fits the data, need a way to measure the "goodness of fit"
+  - This is called the **objective function**
+  - May want to maximize or minimize the objective function, depending on context
+
+## Least Squares Objective Function
+
+- Want to find a line such that some function of the sum of the distances from the line to the measured points is minimized
+
+$$
+\sum_{i=0}^{len(observed)-1} (observed[i]-predicted[i])^2
+$$
+
+- This is the variance times the number of observations
+  - Minimizing this function will also minimize the variance
+- Can use linear regression to find a polynomial representation for the predicted model
+
+## Linear Regression
+
+- Each term is of the form $cx^p$
+  - c = the coefficient, a real number
+  - p = the degree of the term, a non-negative integer
+- The degree of the polynomial is the largest degree of any term
+  - Line: $ax + b$
+  - Parabola: $ax^2 + bx + c$
+- To solve for least squares:
+  - Find values of a and b such that when we use the polynomial to compute y values for all the x values, the squared difference of these *predicted* values and the corresponding *observed* values is minimized
+  - Can use *polyfit* in Python
+  
+```{python}
+def fitData(fileName):
+    xVals, yVals = getData(fileName)
+    xVals = np.array(xVals)
+    yVals = np.array(yVals)
+    xVals = xVals * 9.81
+
+    plt.plot(xVals, yVals, 'bo', label='Measured Points')
+    labelPlot()
+
+    # Linear regression parameters
+    a, b = np.polyfit(xVals, yVals, deg=1)
+    yValsEst = a * np.array(xVals) + b
+
+    # Estimate spring constant k
+    k = round(1 / a, 5)
+
+    plt.plot(xVals, yValsEst, 'r', label='Linear fit, k = ' + str(k))
+    plt.legend(loc='best')
+
+fitData('springData.txt')
+```
+
+- Could also use the *polyval* function to get estimates
+
+```{python}
+def fitData1(fileName):
+    xVals, yVals = getData(fileName)
+    xVals = np.array(xVals)
+    yVals = np.array(yVals)
+    xVals = xVals * 9.81
+
+    plt.plot(xVals, yVals, 'bo', label='Measured Points')
+    labelPlot()
+
+    # Linear regression parameters
+    model = np.polyfit(xVals, yVals, deg=1)
+    yValsEst = np.polyval(model, xVals)
+
+    # Estimate spring constant k
+    k = round(1 / model[0], 5)
+
+    plt.plot(xVals, yValsEst, 'r', label='Linear fit, k = ' + str(k))
+    plt.legend(loc='best')
+
+fitData1('springData.txt')
+```
+
+## Another Example
+
+- This data looks hyperbolic
+
+```{python}
+xVals, yVals = getData('mysteryData.txt')
+plt.plot(xVals, yVals, 'o', label='Data Points')
+plt.title('Mystery Data')
+```
+
+- Try fitting a straight line to it (not a good idea)
+
+```{python}
+plt.plot(xVals, yVals, 'o', label='Data Points')
+plt.title('Mystery Data')
+
+model1 = np.polyfit(xVals, yVals, deg=1)
+plt.plot(xVals, np.polyval(model1, xVals), label='Linear Model')
+```
+
+- Maybe a higher-degree polynomial will work better
+
+```{python}
+plt.plot(xVals, yVals, 'o', label='Data Points')
+plt.title('Mystery Data')
+
+model1 = np.polyfit(xVals, yVals, deg=1)
+plt.plot(xVals, np.polyval(model1, xVals), label='Linear Model')
+
+model2 = np.polyfit(xVals, yVals, deg=2)
+plt.plot(xVals, np.polyval(model2, xVals), 'r--', label='Quadratic Model')
+```
+
+- But the question is, how good are these fits?
+  - Both relative to each other, but also in an absolute sense
+
+## Mean Squared Error
+
+- Measures how good fits are relative to each other
+- Since the fit was found by minimizing the square error, look at that error
+- The quadratic fit has lower error
+
+```{python}
+def avgMeanSquareError(data, predicted):
+  error = 0.0
+
+  for i in range(len(data)):
+    error += (data[i] - predicted[i]) ** 2
+  
+  return error / len(data)
+
+yValsEst = np.polyval(model1, xVals)
+print('Avg. Mean Square Error for linear model =', avgMeanSquareError(yVals, yValsEst))
+
+yValsEst = np.polyval(model2, xVals)
+print('Avg. Mean Square Error for quadratic model =', avgMeanSquareError(yVals, yValsEst))
+```
+
+## R-Squared
+
+- Measures how good fits are in an absolute sense
+- A measure like Mean Squared Error is comparable only on the scale of the underlying data
+- The Coefficient of Determiniation $R^2$ is scale-independent
+
+$$
+R^2 = 1 - \frac{\sum_i^n (y_i - p_i)^2}{\sum_i^n (y_i - \mu)^2}
+$$
+
+```{python}
+def rSquared(observed, predicted):
+  error = ((predicted - observed) ** 2).sum()
+  meanError = error / len(observed)
+
+  return 1 - (meanError / np.var(observed))
+```
+
+- Compares the estimation errors (numerator) with the variability of the original values (denominator)
+- Captures the proportion of variability in a data set that is accounted for by the statistical model
+  - $R^2 = 1$ indicates that the model explains *all* the variability
+  - $R^2 = 0$ indicates that the model explains *none* of the variability
+  - Somewhere between 0 and 1
+
+```{python}
+def genFits(xVals, yVals, degrees):
+  models = []
+
+  for d in degrees:
+    model = np.polyfit(xVals, yVals, deg=d)
+    models.append(model)
+  
+  return models
+
+def testFits(models, degrees, xVals, yVals, title):
+  plt.plot(xVals, yVals, 'o', label='Data')
+
+  for i in range(len(models)):
+    yValsEst = np.polyval(models[i], xVals)
+    error = rSquared(yVals, yValsEst)
+    d = degrees[i]
+    r2 = round(error, 5)
+
+    plt.plot(xVals, yValsEst, label='Fit of degree ' + str(d) + ', R2 = ' + str(r2))
+    plt.legend(loc='best')
+    plt.title(title)
+  
+xVals, yVals = getData('mysteryData.txt')
+degrees = (1, 2)
+models = genFits(xVals, yVals, degrees)
+testFits(models, degrees, xVals, yVals, 'Mystery Data')
+```
+
+- A degree of 2 has a much tighter fit than a degree of 1, so will a higher degree be even tighter?
+
+```{python}
+degrees = (2, 4, 8, 16)
+models = genFits(xVals, yVals, degrees)
+testFits(models, degrees, xVals, yVals, 'Mystery Data')
+```
+
+- Yes, but this starts to enter the realm of overfitting to the data, which can be a problem
+
+*This topic was split into two lectures*
