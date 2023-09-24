@@ -21,7 +21,7 @@
 | 07      | Confidence Intervals                                            | Pset 3         | X         |
 | 08      | Sampling and Standard Error                                     | Pset 3, Pset 4 | X         |
 | 09      | Understanding Experimental Data, Part 1                         | Pset 4, Pset 5 | X         |
-| 10      | Understanding Experimental Data, Part 2                         | Pset 5         |           |
+| 10      | Understanding Experimental Data, Part 2                         | Pset 5         | X         |
 | 11      | Introduction to Machine Learning                                | Pset 5         |           |
 | 12      | Clustering                                                      | Pset 5         |           |
 | 13      | Classification                                                  | Pset 5         |           |
