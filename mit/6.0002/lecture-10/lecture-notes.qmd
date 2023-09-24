@@ -1,0 +1,500 @@
+---
+title: MIT 6.0002 - Lecture 10 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/mit6_0002f16_lec10/)
+
+*This topic was split into two lectures, Lecture 9 and Lecture 10*
+
+Topics covered in this lecture:
+
+- Recap from Previous Lecture
+- Linear Regression
+- Cross Validation
+
+# Recap from Last Lecture
+
+- Our Goal
+  - Find a model that fits experimental data well
+  - Know that data is unlikely to be perfect, so have to account for uncertainty
+  - Sometimes have theoretical knowledge of structure of the model, but not always
+- Solving for Least Squares
+  - Given observed data, and model prediction of expected values, can measure goodness of fit of the model
+  - Want to find the best model for predicting values
+  - Use linear regression to find model that minimizes difference
+
+# Linear Regression
+
+## Basic Linear Regression
+
+- Data from previous lecture
+
+```{python}
+import pylab
+
+def getData(fileName):
+    dataFile = open(fileName, 'r')
+    distances = []
+    masses = []
+    
+    dataFile.readline() #discard header
+    
+    for line in dataFile:
+        d, m = line.split()
+        distances.append(float(d))
+        masses.append(float(m))
+    
+    dataFile.close()
+    
+    return (masses, distances)
+
+xVals, yVals = getData('mysterydata.txt')
+
+pylab.scatter(xVals, yVals)
+pylab.title('Mystery Data')
+pylab.show()
+```
+
+- Fit a line
+
+```{python}
+model1 = pylab.polyfit(xVals, yVals, 1)
+
+pylab.scatter(xVals, yVals)
+pylab.plot(xVals, pylab.polyval(model1, xVals), label='Linear Model')
+```
+
+- Try a higher-degree model
+  - Quadratic seems to be a good fit
+
+```{python}
+model2 = pylab.polyfit(xVals, yVals, deg=2)
+
+pylab.scatter(xVals, yVals)
+pylab.plot(xVals, pylab.polyval(model1, xVals), label='Linear Model')
+pylab.plot(xVals, pylab.polyval(model2, xVals), 'r--', label='Quadratic Model')
+```
+
+## R-Squared
+
+- Can we get a tigher fit?
+  - What if we try a higher order polynomial?
+  - How would we measure its fit?
+  - We could use the **coefficient of determination**
+
+$$
+R^2 = 1 - \frac{\sum_i (y_i - p_i)^2}{\sum_i (y_i - \mu)^2}
+$$
+
+```{python}
+import numpy as np
+
+def rSquared(observed, predicted):
+    error = ((predicted - observed) ** 2).sum()
+    meanError = error / len(observed)
+    rsq = 1 - (meanError / np.var(observed))
+
+    return rsq
+
+def genFits(xVals, yVals, degrees):
+    models = []
+
+    for d in degrees:
+        model = pylab.polyfit(xVals, yVals, d)
+        models.append(model)
+    
+    return models
+
+def testFits(models, degrees, xVals, yVals, title):
+    pylab.plot(xVals, yVals, 'o', label='Data')
+
+    for degree, model in zip(degrees, models):
+        estYVals = pylab.polyval(model, xVals)
+        error = rSquared(yVals, estYVals)
+
+        pylab.plot(
+            xVals, estYVals,
+            label = f"Fit of degree {str(degree)}, R2 = {str(round(error, 5))}"
+        )
+        pylab.legend(loc='best')
+        pylab.title(title)
+
+degrees = (2, 4, 8, 16)
+models = genFits(xVals, yVals, degrees)
+testFits(models, degrees, xVals, yVals, 'Mystery Data')
+```
+
+- Looks like an order 16 fit is really good... should we use it?
+- Should ask: why are we building the model?
+  - Help us understand process that generated the data?
+  - Help us make predictions about out-of-sample data?
+  - A good model helps us do both of these
+
+## Different Data Sets
+
+- The Mystery Data was created using the following
+
+```{python}
+import random
+
+def genNoisyParabolicData(a, b, c, xVals, fName):
+    yVals = []
+
+    for x in xVals:
+        theoreticalVal = a*x**2 + b*x + c
+        yVals.append(theoreticalVal + random.gauss(0, 35))
+    
+    f = open(fName, 'w')
+    f.write('x y\n')
+
+    for x, y in zip(xVals, yVals):
+        f.write(str(y) + ' ' + str(x) + '\n')
+    
+    f.close()
+```
+
+- Looking at two data sets
+
+```{python}
+def testFits(models, degrees, xVals, yVals, title):
+  pylab.plot(xVals, yVals, 'o', label='Data')
+
+  for model, degree in zip(models, degrees):
+    estYVals = pylab.polyval(model, xVals)
+    error = rSquared(yVals, estYVals)
+
+    pylab.plot(
+      xVals, estYVals, 
+      label = f"Fit of degree {str(degree)}, R2 = {str(round(error, 5))}"
+    )
+    pylab.legend(loc='best')
+    pylab.title(title)
+```
+
+```{python}
+random.seed(0)
+
+degrees = (2, 4, 8, 16)
+
+xVals1, yVals1 = getData('Dataset 1.txt')
+models1 = genFits(xVals1, yVals1, degrees)
+testFits(models1, degrees, xVals1, yVals1, 'Dataset 1.txt')
+
+pylab.figure()
+
+xVals2, yVals2 = getData('Dataset 2.txt')
+models2 = genFits(xVals2, yVals2, degrees)
+testFits(models2, degrees, xVals2, yVals2, 'Dataset 2.txt')
+```
+
+- In both cases the degree 16 model has the tightest fit
+  - But is it the "best" fitting model?
+  - We know that the data comes from an order 2 polynomial, so surely that should be the best model?
+- What we are seeing is the training error
+  - The model performs well on the data from which it was trained
+  - Small training error is a necessary condition for a great model, *but not a sufficient one*
+- We want a model that will *generalize* to other data generated by the same process
+
+# Cross Validation
+
+- Generate models from one data set and then test them on another data set
+  - Expect testing error to be larger than training error
+  - Serves as a better indication on generalizability than training error
+
+```{python}
+pylab.figure()
+
+testFits(models1, degrees, xVals2, yVals2, 'Dataset 2 / Model 1')
+
+pylab.figure()
+
+testFits(models2, degrees, xVals1, yVals1, 'Dataset 1 / Model 2')
+```
+
+- Now, the order 16 polynomial is not doing so well
+  - The best model is likely the order 2 or order 4 model
+  - The order 16 model was *overfitting* to the data
+
+## Increasing Complexity
+
+- Why do we get a "better" fit on training data with a higher-order model, but it does less well on new data?
+  - If the extra term is useless, would it not merely be zero?
+  - In theory, yes, but if the data is noisy, the model starts fitting to a noise rather than the underlying pattern in the data
+
+### Fitting a Quadratic to a Perfect Line
+
+- Get a perfect R-squared of 1.0
+
+```{python}
+xVals = (0, 1, 2, 3)
+yVals = xVals
+
+pylab.plot(xVals, yVals, label='Actual Values')
+
+a, b, c = pylab.polyfit(xVals, yVals, 2)
+estYVals = pylab.polyval((a, b, c), xVals)
+
+pylab.plot(xVals, estYVals, 'r--', label='Predicted Values')
+
+print(f"a = {round(a, 4)}, b = {round(b, 4)}, c = {round(c, 4)}")
+print(f"R-squared = {rSquared(yVals, estYVals)}")
+```
+
+### Predict Another Point Using Same Model
+
+- Again, a perfect R-squared of 1.0
+
+```{python}
+xVals = xVals + (20, )
+yVals = xVals
+
+estYVals = pylab.polyval((a, b, c), xVals)
+
+pylab.plot(xVals, yVals, label='Actual Values')
+pylab.plot(xVals, estYVals, 'r--', label='Predicted Values')
+
+print(f"R-squared = {rSquared(yVals, estYVals)}")
+```
+
+### Simulate a Small Measurement Error
+
+- So now we have an imperfect R-squared
+
+```{python}
+xVals = (0, 1, 2, 3)
+yVals = (0, 1, 2, 3.1)
+
+model = pylab.polyfit(xVals, yVals, 2)
+estYVals = pylab.polyval(model, xVals)
+
+pylab.plot(xVals, yVals, label='Actual Values')
+pylab.plot(xVals, estYVals, 'r--', label='Predicted Values')
+
+print(model)
+print(f"R-squared = {rSquared(yVals, estYVals)}")
+```
+
+### Predict Another Point Using Same Model
+
+- The new point causes the R-squared value to dramatically decrease
+
+```{python}
+xVals = xVals + (20, )
+yVals = xVals
+
+estYVals = pylab.polyval(model, xVals)
+
+pylab.plot(xVals, yVals, label='Actual Values')
+pylab.plot(xVals, estYVals, 'r--', label='Predicted Values')
+
+print(f"R-squared = {rSquared(yVals, estYVals)}")
+```
+
+### If a First-Degree Fit Was Used
+
+- The R-squared is higher for a first-degree model
+
+```{python}
+xVals = (0, 1, 2, 3)
+yVals = (0, 1, 2, 3.1)
+
+model = pylab.polyfit(xVals, yVals, 1)
+
+xVals = xVals + (20, )
+yVals = xVals
+
+estYVals = pylab.polyval(model, xVals)
+
+pylab.plot(xVals, yVals, label='Actual Values')
+pylab.plot(xVals, estYVals, 'r--', label='Predicted Values')
+
+print(f"R-squared = {rSquared(yVals, estYVals)}")
+```
+
+- Choosing an overly-complex model leads to *overfitting* on the training data
+- It also increases the risk of a model that works poorly on data not included in the training set
+- On the other hand, choosing an insufficiently complex model has other problems, such as fitting a line to data that is parabolic
+  - "Everything should be m ade as simple as possible, but not simpler"
+
+### Overall Idea
+
+1. Fit a low order model to the training data
+2. Test on new data and record the R-squared value
+3. Increase order of model and repeat
+4. Continue until fit on test data begins to decline
+
+# Cross Validation
+
+- A method for combating against overfitting on the training data
+
+## Leave-One-Out Cross Validation
+
+- For each observation in the data set
+  - Assign it as the only observation in a held-out data set
+  - Build a model on the remaining data
+  - Calculate the performance on the held-out observation
+- Average the performance on all held-out observations
+- Works well when we have a large amount of data
+
+```{python}
+#| eval: false
+
+#> Pseudocode
+
+def loo_cv(D):
+  """Let D be the original data set"""
+  testResults = []
+
+  for i in range(len(D)):
+    training = D[:].pop(i)
+    model = buildModel(training)
+    testResults.append(test(model, D[i]))
+  
+  return mean(results)
+```
+
+## Repeated Random Sampling
+
+```{python}
+#| eval: false
+
+#> Pseudocode
+
+def rep_rand_sample(D, n, k):
+  """Let:
+    D be the original data set,
+    n be the number of random samples
+    k be the number of trials
+  """
+
+  testResults = []
+  
+  for i in range(k):
+    #> Randomly select n elements for testSet, keep rest for training
+    model = buildModel(training)
+    testResults.append(test(model, testSet))
+  
+  return mean(results)
+```
+
+## Example: Temperature by Year
+
+### Set Up Classes and Functions
+
+```{python}
+class tempDatum(object):
+  def __init__(self, s):
+    info = s.split(',')
+    self.high = float(info[1])
+    self.year = int(info[2][0:4])
+  
+  def getHigh(self):
+    return self.high
+  
+  def getYear(self):
+    return self.year
+```
+
+```{python}
+def getTempData():
+  inFile = open('temperatures.csv')
+  data = []
+
+  for l in inFile:
+    data.append(tempDatum(l))
+
+  return data
+```
+
+```{python}
+def getYearlyMeans(data):
+  years = {}
+
+  for d in data:
+    try:
+      years[d.getYear()].append(d.getHigh())
+    except:
+      years[d.getYear()] = [d.getHigh()]
+    
+  for y in years:
+    years[y] = sum(years[y]) / len(years[y])
+    
+  return years
+```
+
+### Get and Plot Data
+
+```{python}
+data = getTempData()
+years = getYearlyMeans(data)
+xVals, yVals = [], []
+
+for e in years:
+  xVals.append(e)
+  yVals.append(years[e])
+
+pylab.plot(xVals, yVals)
+pylab.xlabel('Year')
+pylab.ylabel('Mean Daily High (C)')
+pylab.title('Select U.S. Cities')
+```
+
+### Split Data
+
+```{python}
+def splitData(xVals, yVals):
+  toTrain = random.sample(range(len(xVals)), len(xVals) // 2)
+  trainX, trainY, testX, testY = [], [], [], []
+
+  for i in range(len(xVals)):
+    if i in toTrain:
+      trainX.append(xVals[i])
+      trainY.append(yVals[i])
+    else:
+      testX.append(xVals[i])
+      testY.append(yVals[i])
+  
+  return trainX, trainY, testX, testY
+```
+
+### Train, Test, and Report
+
+```{python}
+random.seed(0)
+
+numSubsets = 10
+dimensions = (1, 2, 3, 4)
+rSquares = {}
+
+for d in dimensions:
+  rSquares[d] = []
+
+for f in range(numSubsets):
+  trainX, trainY, testX, testY = splitData(xVals, yVals)
+
+  for d in dimensions:
+    model = pylab.polyfit(trainX, trainY, d)
+    estYVals = pylab.polyval(model, testX)
+    rSquares[d].append(rSquared(testY, estYVals))
+
+print('Mean R-squares for test data')
+
+for d in dimensions:
+  mean = round(sum(rSquares[d]) / len(rSquares[d]), 4)
+  sd = round(np.std(rSquares[d]), 4)
+
+  print(f"For dimensionality {d}, mean = {mean}, std = {sd}")
+```
+
+### Conclusions
+
+- Line (dimensionality 1) seems to be the winner
+  - Highest average R-squared
+  - Smallest deviation across trials
+  - Simplest model
+- Why multiple sets should be used
+  - Deviations are a decimal order of magnitude smaller than means
+    - Suggests that while there is good agreement overall, deviations are large enough that there could be a noticeable range of variation across trials
+  - This could lead us to a different conclusion about the model's validity
