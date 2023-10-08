@@ -1,0 +1,338 @@
+---
+title: MIT 6.0002 - Lecture 12 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/mit6_0002f16_lec12/)
+
+Topics covered in this lecture:
+
+- Machine Learning Paradigm
+- Hierarchical Clustering
+- K-Means Clustering
+
+# Machine Learning Paradigm
+
+## Steps
+
+- Observe a set of examples (*training data*)
+- Infer something about the process that generated that data
+- Use inference to make predictions about previously unseen data (*test data*)
+
+## Types
+
+- **Supervised**: given a set of feature/label pairs, find a rule that predicts the label associated with a previously unseen input
+- **Unsupervised**: given a set of feature vectors (without labels) group them into "natural clusters"
+
+## Clustering is an Optimization Problem
+
+- Two main metrics: variability within a cluster and dissimilarity between clusters
+
+$$
+variability(c) = \sum_{e \in c} distance(mean(c), e) ^ 2
+$$
+
+$$
+dissimilarity(C) = \sum_{c \in C} variability(c)
+$$
+
+- It is **not** finding a *C* that minimizes *dissimilarity(C)*
+  - That would be just putting each example in its own cluster, which is not helpful
+- Need to contrain either the minimum distance between clusters or the number of clusters
+- Two popular clustering methods are
+    1. Hierarchical clustering (contrain distance between clusters)
+    2. K-Means clustering (contrain the number of clusters)
+
+# Hierarchical Clustering
+
+## Algorithm
+
+1. Start by assigning each item to a cluster
+    - If you have N items, you have N clusters, one cluster per item
+2. Find the closest (most similar) pair of clusters and merge them into a single cluster
+    - You now have N - 1 clusters
+3. Continue the process until all items are clustered into a single cluster of size N
+
+- A deterministic, flexible algorithms, but very slow
+  - The naive algorithm is $n^3$
+  - For some linkage criteria, $n^2$ algorithms exist
+
+## Linkage Metrics (Distance)
+
+- *Single-linkage*: consider the distance between one cluster and another cluster to be equal to the **shortest** distance from any member of one cluster to any member of the other cluster
+
+- *Complete-linkage*: consider the distance between one cluster and another cluster to be equal to the **greatest** distance from any member of one cluster to any member of the other cluster
+
+- *Average-linkage*: consider the distance between one cluster and another cluster to be equal to the **average** distance from any member of one cluster to any member of the other cluster
+
+## Example
+
+- Distances between cities
+
+|     | BOS  | NY   | CHI  | DEN  | SF   | SEA  |
+|:---:|:----:|:----:|:----:|:----:|:----:|:----:|
+| BOS | 0    |  206 |  963 | 1949 | 3095 | 2979 |
+| NY  |      | 0    | 802  | 1771 | 2934 | 2815 |
+| CHI |      |      | 0    | 966  | 2142 | 2013 |
+| DEN |      |      |      | 0    | 1235 | 1307 |
+| SF  |      |      |      |      | 0    | 808  |
+| SEA |      |      |      |      |      | 0    |
+
+- Creating the clusters
+
+| Round                | Cluster(s)                          |
+|:--------------------:|:-----------------------------------:|
+| 1                    | {BOS} {NY} {CHI} {DEN} {SF} {SEA}   |
+| 2                    | {BOS, NY} {CHI} {DEN} {SF} {SEA}    |
+| 3                    | {BOS, NY, CHI} {DEN} {SF} {SEA}     |
+| 4                    | {BOS, NY, CHI} {DEN} {SF, SEA}      |
+| 5 (single linkage)   | {BOS, NY, CHI, DEN} {SF, SEA} **OR**|
+| 5 (complete linkage) | {BOS, NY, CHI} {DEN, SF, SEA}       |
+| 6                    | {BOS, BY, CHI, DEN, SF, SEA}        |
+
+- Can create a dendogram to select the number of clusters
+
+# K-Means Clustering
+
+- A much faster greedy algorithm
+- Pseudo-code:
+
+```{python}
+#| eval: false
+
+randomly choose k examples as initial centroids
+
+while true:
+    create k clusters by assigning each example to closest centroid
+
+    compute k new centroids by averaging examples in each cluster
+
+    if centroids do not change:
+        break
+```
+
+- Issues with K-Means
+-  Chossing the "wrong" k can lead to strange results
+-  Result can depend upon initial centroids
+   -  May dramatically increase number of iterations
+   -  Greedy algorithm can find different local optimas
+
+## How to Choose k
+
+- *A priori* knowledge about application domain
+- Search for a good k
+  - Try different values of k and evaluate quality of results
+  - Run hierarchical clustering on subset of data
+
+## Mitigate Dependence on Initial Centroids
+
+- Try multiple sets of randomly chosen initial centroids and pick "best" result
+- Pseudo-code
+
+
+```{python}
+#| eval: false
+
+best = kMeans(points)
+for t in range(numTrials):
+  C = kMeans(points)
+  if dissimilarity(C) < dissimilarity(best):
+    best = C
+  
+return best
+```
+
+## Example
+
+- Define functions and classes
+
+```{python}
+import cluster, random, pylab
+import numpy as np
+
+class Patient(cluster.Example):
+  pass
+
+def scaleAttrs(vals):
+  vals = np.array(vals)
+  mean = sum(vals) / len(vals)
+  sd = np.std(vals)
+  vals = vals - mean
+
+  return vals / sd
+
+def getData(toScale = False):
+  hrList, stElevList, ageList, prevACSList, classList = [], [], [], [], []
+  cardiacData = open('cardiacData.txt')
+
+  for l in cardiacData:
+    l = l.split(',')
+    hrList.append(int(l[0]))
+    stElevList.append(int(l[1]))
+    ageList.append(int(l[2]))
+    prevACSList.append(int(l[3]))
+    classList.append(int(l[4]))
+  
+  if toScale:
+    hrList = scaleAttrs(hrList)
+    stElevList = scaleAttrs(stElevList)
+    ageList = scaleAttrs(ageList)
+    prevACSList = scaleAttrs(prevACSList)
+  
+  points = []
+  for i in range(len(hrList)):
+    features = np.array([hrList[i], prevACSList[i], stElevList[i], ageList[i]])
+    pIndex = str(i)
+    points.append(Patient('P' + pIndex, features, classList[i]))
+
+  return points
+
+def kmeans(examples, k, verbose=False):
+  # Get k randomly chosen initial centroids
+  initialCentroids = random.sample(examples, k)
+  
+  clusters = []
+  for c in initialCentroids:
+    clusters.append(cluster.Cluster([c]))
+  
+  # Iterate until centroids do not change
+  converged = False
+  numIter = 0
+
+  while not converged:
+    numIter += 1
+
+    newClusters = []
+    for i in range(k):
+      newClusters.append([])
+    
+    # Associate each example with closest centroid
+    for e in examples:
+      smallestDist = e.distance(clusters[0].getCentroid())
+      index = 0
+
+      for i in range(1, k):
+        dist = e.distance(clusters[i].getCentroid())
+        if dist < smallestDist:
+          smallestDist = dist
+          index = i
+      
+      # Add e to th elist of examples for appropriate cluster
+      newClusters[index].append(e)
+    
+    # Avoid having empty clusters
+    for c in newClusters:
+      if len(c) == 0:
+        raise ValueError('Empty Cluster')
+    
+    # Update each cluster and check if centroid has changed
+    converged = True
+
+    for i in range(k):
+      if clusters[i].update(newClusters[i]) > 0.0:
+        converged = False
+    
+    if verbose:
+      print('Iteration #' + str(numIter))
+
+      for c in clusters:
+        print(c)
+      
+      print('')
+  
+  return clusters
+
+def trykmeans(examples, numClusters, numTrials, verbose=False):
+  best = kmeans(examples, numClusters, verbose)
+  minDissimilarity = cluster.dissimilarity(best)
+
+  trial = 1
+  while trial < numTrials:
+    try:
+      clusters = kmeans(examples, numClusters, verbose)
+    except ValueError:
+      continue
+
+    currDissimilarity = cluster.dissimilarity(clusters)
+
+    if currDissimilarity < minDissimilarity:
+      best = clusters
+      minDissimilarity = currDissimilarity
+    
+    trial += 1
+  
+  return best
+
+def printClustering(clustering):
+  posFracs = []
+
+  for c in clustering:
+    numPts = 0
+    numPos = 0
+
+    for p in c.members():
+      numPts += 1
+
+      if p.getLabel() == 1:
+        numPos += 1
+    
+    fracPos = numPos / numPts
+    posFracs.append(fracPos)
+
+    print('Cluster of size', numPts, 'with fraction of positives =', round(fracPos, 4))
+  
+  return np.array(posFracs)
+
+def testClustering(patients, numClusters, seed=0, numTrials=5):
+  random.seed(seed)
+
+  bestClustering = trykmeans(patients, numClusters, numTrials)
+  posFracs = printClustering(bestClustering)
+
+  return posFracs
+```
+
+- Run functions to see what clusters are created with 2 clusters selected
+
+- Unscaled data:
+
+```{python}
+patients = getData()
+
+for k in (2, ):
+  print(f"\nTest k-means (k = {str(k)})")
+  posFracs = testClustering(patients, k, 2)
+```
+
+- Scaled data (seems much better):
+
+```{python}
+patients = getData(toScale=True)
+
+for k in (2, ):
+  print(f"\nTest k-means (k = {str(k)})")
+  posFracs = testClustering(patients, k, 2)
+```
+
+- How many positives are there?
+
+```{python}
+numPos = 0
+
+for p in patients:
+  if p.getLabel() == 1:
+    numPos += 1
+
+print(f"Total number of positive patients = {numPos}")
+```
+
+- Try some other values of k
+
+```{python}
+patients = getData(toScale=True)
+
+for k in (2, 4, 6):
+  print(f"\nTest k-means (k = {str(k)})")
+  posFracs = testClustering(patients, k, 2)
+```
