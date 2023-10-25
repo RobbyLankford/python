@@ -1,0 +1,343 @@
+---
+title: MIT 6.0002 - Lecture 14 Notes
+format: html
+jupyter: python3
+---
+
+[Source](https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/resources/mit6_0002f16_lec14/)
+
+Topics covered in this lecture:
+
+- Continuation of Last Lecture
+- Receiver Operating Characteristic (ROC)
+- Statistical Sins
+
+# From Previous Lecture
+
+- Classes and functions from the previous lecture
+
+```{python}
+import sklearn
+from sklearn.linear_model import LogisticRegression
+
+def minkowskiDist(v1, v2, p):
+    """Assumes v1 and v2 are equal-length arrays of numbers
+       Returns Minkowski distance of order p between v1 and v2"""
+    dist = 0.0
+    
+    for i, val in enumerate(v1):
+        dist += abs(v1[i] - v2[i]) ** p
+    
+    return dist ** (1 / p)
+
+def getTitanicData(fname):
+    data = {}
+    data['class'], data['survived'], data['age'] = [], [], []
+    data['gender'], data['name'] = [], []
+    f = open(fname)
+    line = f.readline()
+    
+    while line != '':
+        split = line.split(',')
+        data['class'].append(int(split[0]))
+        data['age'].append(float(split[1]))
+        
+        if split[2] == 'M':
+            data['gender'].append(1)
+        else:
+            data['gender'].append(0)
+        
+        if split[3] == '1':
+            data['survived'].append('Survived')
+        else:
+            data['survived'].append('Died')
+        
+        data['name'].append(split[4:])
+        line = f.readline()
+    
+    return data
+
+def buildTitanicExamples(fileName):
+    data = getTitanicData(fileName)
+    examples = []
+    
+    for i, val in enumerate(data['class']):
+        p = Passenger(
+            data['class'][i], data['age'][i],
+            data['gender'][i], data['survived'][i],
+            data['name'][i]
+        )
+        
+        examples.append(p)
+    
+    print('Finished processing', len(examples), 'passengers\n')    
+    
+    return examples
+
+def accuracy(truePos, falsePos, trueNeg, falseNeg):
+    numerator = truePos + trueNeg
+    denominator = truePos + trueNeg + falsePos + falseNeg
+    
+    return numerator/denominator
+
+def sensitivity(truePos, falseNeg):
+    try:
+        return truePos / (truePos + falseNeg)
+    except ZeroDivisionError:
+        return float('nan')
+    
+def specificity(trueNeg, falsePos):
+    try:
+        return trueNeg / (trueNeg + falsePos)
+    except ZeroDivisionError:
+        return float('nan')
+    
+def posPredVal(truePos, falsePos):
+    try:
+        return truePos / (truePos + falsePos)
+    except ZeroDivisionError:
+        return float('nan')
+    
+def negPredVal(trueNeg, falseNeg):
+    try:
+        return trueNeg / (trueNeg + falseNeg)
+    except ZeroDivisionError:
+        return float('nan')
+       
+def getStats(truePos, falsePos, trueNeg, falseNeg, toPrint = True):
+    accur = accuracy(truePos, falsePos, trueNeg, falseNeg)
+    sens = sensitivity(truePos, falseNeg)
+    spec = specificity(trueNeg, falsePos)
+    ppv = posPredVal(truePos, falsePos)
+    
+    if toPrint:
+        print('Accuracy =', round(accur, 3))
+        print('Sensitivity =', round(sens, 3))
+        print('Specificity =', round(spec, 3))
+        print('Pos. Pred. Val. =', round(ppv, 3))
+    
+    return (accur, sens, spec, ppv)
+
+def split80_20(examples):
+    sampleIndices = random.sample(range(len(examples)), len(examples) // 5)
+    trainingSet, testSet = [], []
+
+    for i, val in enumerate(examples):
+        if i in sampleIndices:
+            testSet.append(val)
+        else:
+            trainingSet.append(val)
+    
+    return trainingSet, testSet
+    
+def randomSplits(examples, method, numSplits, toPrint = True):
+    truePos, falsePos, trueNeg, falseNeg = 0, 0, 0, 0
+    random.seed(0)
+    
+    for _ in range(numSplits):
+        trainingSet, testSet = split80_20(examples)
+        results = method(trainingSet, testSet)
+        truePos += results[0]
+        falsePos += results[1]
+        trueNeg += results[2]
+        falseNeg += results[3]
+    
+    getStats(truePos / numSplits, falsePos / numSplits, trueNeg / numSplits, falseNeg / numSplits, toPrint)
+    
+    return truePos / numSplits, falsePos / numSplits, trueNeg / numSplits, falseNeg / numSplits
+
+def buildModel(examples, toPrint = True):
+    featureVecs, labels = [],[]
+    
+    for e in examples:
+        featureVecs.append(e.getFeatures())
+        labels.append(e.getLabel())
+    
+    model = LogisticRegression().fit(featureVecs, labels)
+    
+    if toPrint:
+        print('model.classes_ =', model.classes_)
+        
+        for i, val1 in enumerate(model.coef_):
+            print('For label', model.classes_[1])
+            
+            for j, val2 in enumerate(model.coef_[0]):
+                print('   ', Passenger.featureNames[j], '=', model.coef_[0][j])
+    
+    return model
+
+def applyModel(model, testSet, label, prob = 0.5):
+    testFeatureVecs = [e.getFeatures() for e in testSet]
+    probs = model.predict_proba(testFeatureVecs)
+    truePos, falsePos, trueNeg, falseNeg = 0, 0, 0, 0
+    
+    for i, val in enumerate(probs):
+        if probs[i][1] > prob:
+            if testSet[i].getLabel() == label:
+                truePos += 1
+            else:
+                falsePos += 1
+        else:
+            if testSet[i].getLabel() != label:
+                trueNeg += 1
+            else:
+                falseNeg += 1
+    
+    return truePos, falsePos, trueNeg, falseNeg
+
+def lr(trainingData, testData, prob = 0.5):
+    model = buildModel(trainingData, False)
+    results = applyModel(model, testData, 'Survived', prob)
+    
+    return results
+```
+
+- We saw that there was not much difference between the two models (Logistic Regression and KNN)
+- Notice that some of the features are correlated
+  - The values for class are not independent: if you are not in 1st or 2nd, you must be in 3rd
+  - What if we eliminate c1?
+
+```{python}
+class Passenger(object):
+    #> Exclude 'C1'
+    featureNames = ('C2', 'C3', 'age', 'male gender')
+    def __init__(self, pClass, age, gender, survived, name):
+        self.name = name
+        if pClass == 2:
+            self.featureVec = [1, 0, age, gender]
+        elif pClass == 3:
+            self.featureVec = [0, 1, age, gender]
+        else:
+            self.featureVec = [0, 0, age, gender]
+        self.label = survived
+        self.cabinClass = pClass
+    
+    def distance(self, other):
+        return minkowskiDist(self.featureVec, other.featureVec, 2)
+    
+    def getClass(self):
+        return self.cabinClass
+    
+    def getAge(self):
+        return self.featureVec[3]
+    
+    def getGender(self):
+        return self.featureVec[4]
+    
+    def getName(self):
+        return self.name
+    
+    def getFeatures(self):
+        return self.featureVec[:]
+    
+    def getLabel(self):
+        return self.label
+```
+
+- Fit the model with these new variables
+
+```{python}
+import random
+
+examples = buildTitanicExamples('TitanicPassengers.txt')
+
+random.seed(0)
+numSplits = 20
+
+print('Average of', numSplits, '80/20 splits LR')
+truePos, falsePos, trueNeg, falseNeg = randomSplits(examples, lr, numSplits)
+
+trainingSet, testSet = split80_20(examples)
+model = buildModel(trainingSet, True)
+```
+
+- What if we now changed the probability cutoff of being placed into the "positive" class?
+  - The default is 0.5, but it does not have to be
+
+```{python}
+random.seed(0)
+
+trainingSet, testSet = split80_20(examples)
+model = buildModel(trainingSet, False)
+```
+
+```{python}
+print("Try p = 0.1")
+truePos, falsePos, trueNeg, falseNeg = applyModel(model, testSet, 'Survived', 0.1)
+getStats(truePos, falsePos, trueNeg, falseNeg)
+```
+
+```{python}
+random.seed(0)
+
+print("Try p = 0.9")
+truePos, falsePos, trueNeg, falseNeg = applyModel(model, testSet, 'Survived', 0.9)
+getStats(truePos, falsePos, trueNeg, falseNeg)
+```
+
+# Receiver Operating Characteristic (ROC)
+
+- Plots the Sensitivity against 1 - Specificity as the probability threshold changes
+- Area under the curve (AUC) can serve as a measurement of how well the model is performing
+- A "random" estimator would have an AUC of 0.5 while a "perfect" estimator would have an AUC of 1.0
+
+```{python}
+import pylab
+import sklearn.metrics
+
+def buildROC(trainingSet, testSet, title, plot=True):
+    model = buildModel(trainingSet, True)
+    xVals, yVals = [], []
+    p = 0.0
+
+    while p <= 1.0:
+        truePos, falsePos, trueNeg, falseNeg = applyModel(model, testSet, 'Survived', p)
+        xVals.append(1.0 - specificity(trueNeg, falsePos))
+        yVals.append(sensitivity(truePos, falseNeg))
+        p += 0.01
+    
+    auroc = sklearn.metrics.auc(xVals, yVals)
+
+    if plot:
+        title = f"{title}\nAUC = {str(round(auroc, 3))}"
+
+        pylab.plot(xVals, yVals)
+        pylab.plot([0,1], [0,1])
+        pylab.title(title)
+        pylab.xlabel('1 - specificity')
+        pylab.ylabel('Sensitivity')
+    
+    return auroc
+```
+
+```{python}
+random.seed(0)
+
+trainingSet, testSet = split80_20(examples)
+buildROC(trainingSet, testSet, 'ROC for Predicting Survival, 1 Split')
+```
+
+# Statistical Sins
+
+## General Recommendations
+
+- It is *very* easy to lie with statistics
+- Statistics about the data is not the same as the data itself
+  - Always use visualization tools to look at the data
+- Look carefully at the axes, labels, and scales on data visualizations
+  - They will often be manipulated to tell a story that is not there
+- Ask whether two things that are being compared are actually comparable
+- Garbage In, Garbage Out (GIGO)
+  - If the inputs to a statistical analysis are bad, then the outputs will be bad as well
+
+## Sampling
+
+- All statistical techniques are based upon the assumption that by sampling a subset of a population we can infer things about the population as a whole
+- If *random sampling* is used, one can make meaningful mathematical statements
+  - It is easy to get random samples in simulations, but not so easy in the real world
+- "Convenience Sampling" is not usually random
+  - Survivor bias
+  - Non-response bias
+- When samples are neither random nor independent, we can still do things like compute means and standard deviations
+  - However, do **not** draw conclusions from them
+- Overall: understand how the data was collected and whether assumptions used in the analysis are satisified
