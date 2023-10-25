@@ -25,5 +25,5 @@
 | 11      | Introduction to Machine Learning                                | Pset 5         | X         |
 | 12      | Clustering                                                      | Pset 5         | X         |
 | 13      | Classification                                                  | Pset 5         | X         |
-| 14      | Classification and Statistical Sins                             | N/A            |           |
+| 14      | Classification and Statistical Sins                             | N/A            | X         |
 | 15      | Statistical Sins and Wrap Up                                    | N/A            |           |
