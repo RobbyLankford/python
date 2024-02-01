@@ -1,0 +1,252 @@
+---
+title: MIT 6.1010 - Week 1 Notes
+format: html
+jupyter: python3
+---
+
+[Source]()
+
+Topics covered in this lecture:
+- Environmental Diagrams
+- Lists
+- Tuples
+
+# Environmental Model
+
+## Introduction
+
+- Goals for this course is to improve skill in the following areas:
+  - Programming: analyzing problems, breaking them down, and forming plans
+  - Coding: translating those plans into working code
+  - Debugging: finding, understanding, and fixing errors
+
+## A Motivating Example
+
+- What will happen if this program is run?
+
+```{python}
+functions = []
+
+for i in range(5):
+    def func(x):
+        return x + i
+    
+    functions.append(func)
+
+for f in functions:
+    print(f(12))
+```
+
+- The code does not behave as expected... it prints out 16 each time!
+
+## Environmental Diagrams
+
+- Two separate regions in memory
+  - The Heap: where objects are stored
+  - The Stack: where we keep track of names
+- Organized into structures called Frames
+  - Stores mappings from names to objects
+  - Global Frame: where execution starts and contains all other frames
+- Note the following declaration of variables
+  - An integer of 307 is stored in the heap
+  - A variable named x is stored in the stack that points to the integer 307 object
+    - The *variable* x has 307 *bound* to it via a *reference*
+  - An integer 308 is stored in the heap
+  - The reference from x now points to 308
+  - The 307 object is removed via garbage collection
+  - A variable named y is stored in the stack
+  - Variable y references the same 308 object as variable x
+  - An integer 342 is stored in the heap
+  - The reference from y now points to 342
+
+```{python}
+x = 307
+x = 308
+y = x
+y = 342
+
+print(x)
+print(y)
+```
+
+## Lists
+
+- Lists can store multiple objects of the same type or different types
+
+```{python}
+myList = [309, 310, "cat"]
+
+print(myList)
+```
+
+- Drawn in environmental diagrams as consecutive blocks of memory in the heap
+  - Each block then points to the object stored in that index of the list within the heap
+  - The variable name of the list in the stack points to the overall block of memory
+
+### Operations on Lists
+
+- To index into a list (get an item at a certain index out of it), use brackets
+
+```{python}
+print(myList[0])
+```
+
+- To assign an item to a pre-existing location within the list, use the equal sign
+  - The new object (such as an `int`) is stored in the heap
+  - The pointer from the specific block of memory of the list in the heap is then changed to point to that new object
+  - The old object is deleted via garbage collection
+
+```{python}
+print(myList)
+
+myList[0] = 313
+
+print(myList)
+```
+
+- Can make *sublists* of a list using slicing, which has the form `x[start:stop]`
+  - This will create a sublist of list `x` starting at index `start` and ending at index `stop - 1`
+  - A *shallow copy* will be created that contains all the same pointers to the places in memory that the original list has
+  - Can also add a third piece `x[start:stop:step]` to include the number of values that should be skipped during each iteration from `start` to `stop - 1`
+  - Shorthand notation can include, for example, `x[:]` for a full copy of the list or `x[::-1]` for a full copy of the list with the elements backwards
+
+```{python}
+#> Note that lists can also contain other lists
+
+x = [[9, 8], [7, 6, 5]]
+print(x)
+
+y1 = x
+print(y1)
+
+y2 = x[:]
+print(y2)
+```
+
+- Elements can be added to lists using the `.append()` method, which will add the element to the end of the list
+  - The new object will be created in the heap
+  - An additional reference and single block of memory is added to the end of the total block
+  - A pointer then goes from that new block to the new object
+
+```{python}
+x = 7
+y = [4, 5, 6]
+
+print(y)
+y.append(x)
+print(y)
+```
+
+- Elements can also be added to lists using the `extend` method, which will add an *iterable object* (such as another list) to the end of the list
+  - Say that there are two lists, `x` and `y` already declared
+  - To extend list `y` with list `x`, additional blocks of memory (one for each element in `x`) are added to the end of `y`
+  - Pointers then go from those new blocks in list `y` to the objects in the list `x`
+
+```{python}
+x = [1, 2, 3]
+y = [4, 5]
+
+print(x)
+print(y)
+
+y.extend(x)
+
+print(y)
+```
+
+- Elements can also be added to lists using the `insert` method, which will insert a value at any location in the list (rather than just at the end)
+  - The new object is inserted into the heap
+  - The reference at the desired location in the list is then changed to that new object
+  - Each memory block in the list then has its reference nudged to next item (with the final element being added to a new memory block at the end)
+
+```{python}
+x = [7, 7, 7, 7, 7]
+print(x)
+
+x.insert(2, 8)
+
+print(x)
+```
+
+- Elements can be removed from the list using the `pop` method, which will remove an item from the list based on its index
+  - The pointer from that block of memory will no longer point to that object in the heap
+  - The object in the heap is removed via garbage collection
+  - Not specifying an index will remove the last element of the list
+
+```{python}
+x = [1, 2, 3, 4, 5]
+
+x.pop()
+print(x)
+
+x.pop(1)
+print(x)
+```
+
+- Elements can also be removed from the list using the `remove` method, which will remove an item from the list based on its value
+  - The pointer from that block of memory will no longer point to that object in the heap
+  - The object in the heap is removed via garbage collection
+  - If the value occurs more than once in the list, the earliest occurence will be removed
+
+
+```{python}
+x = [1, 2, 3, 4, 3, 2, 1]
+
+x.remove(4)
+print(x)
+
+x.remove(1)
+print(x)
+```
+
+- Can concatenate lists using the `+` operator, which will create a new list containing all the references from the left-side following by all the references from the right-side
+  - A new block of memory is allocated with the length of the sum of the lengths of the two lists
+  - Pointers from this new block of memory will point to the same objects in the same order as the left-side list followed by the right-side list
+
+```{python}
+x = [1, 2, 3]
+y = [4, 5]
+
+print(x)
+print(y)
+
+z = x + y
+
+print(z)
+```
+
+## Tuples
+
+- Tuples are like lists in that items are stored as references to other objects on the heap
+- Tuples are unlike lists in that they are *immutable*
+- Represented by a comma-separated list of expressions surrounded by either round brackets or nothing
+
+```{python}
+x = (1, 2, 3)
+y = 7, 8, 9
+
+print(x)
+print(y)
+```
+
+- Including just one number in a tuple will result in an integer, not a tuple
+  - Must include a comma for an integer to become a tuple
+
+```{python}
+x = (7)
+
+print(x)
+print(type(x))
+
+y = (7, )
+
+print(y)
+print(type(y))
+```
+
+- Can create an empty tuple with either `()` or `tuple()`
+
+```{python}
+print(())
+print(tuple())
+```
