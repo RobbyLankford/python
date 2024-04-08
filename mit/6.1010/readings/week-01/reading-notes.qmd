@@ -4,8 +4,6 @@ format: html
 jupyter: python3
 ---
 
-[Source]()
-
 Topics covered in this lecture:
 - Environmental Diagrams
 - Lists
@@ -42,11 +40,11 @@ for f in functions:
 ## Environmental Diagrams
 
 - Two separate regions in memory
-  - The Heap: where objects are stored
-  - The Stack: where we keep track of names
-- Organized into structures called Frames
+  - **The Heap**: where objects are stored
+  - **The Stack**: where we keep track of names
+- Organized into structures called *Frames*
   - Stores mappings from names to objects
-  - Global Frame: where execution starts and contains all other frames
+  - **Global Frame**: where execution starts and contains all other frames
 - Note the following declaration of variables
   - An integer of 307 is stored in the heap
   - A variable named x is stored in the stack that points to the integer 307 object
@@ -91,6 +89,7 @@ print(myList)
 print(myList[0])
 ```
 
+- Lists are *mutable*, meaning that they can be modified
 - To assign an item to a pre-existing location within the list, use the equal sign
   - The new object (such as an `int`) is stored in the heap
   - The pointer from the specific block of memory of the list in the heap is then changed to point to that new object
@@ -103,6 +102,14 @@ myList[0] = 313
 
 print(myList)
 ```
+
+- Common Error Messages
+  - **IndexError: list index out of range**
+    - Occurs when we try to access an invalid index in a list
+  - **TypeError: list indicies must be integers or slices, not...**
+    - Occurs when we try to use a value as an index that is not an integer
+  - **TypeError: '...' object is not subsriptable**
+    - Occurs when we try to use square brackets to index into ("subscript") an object that does not support it
 
 - Can make *sublists* of a list using slicing, which has the form `x[start:stop]`
   - This will create a sublist of list `x` starting at index `start` and ending at index `stop - 1`
@@ -137,7 +144,7 @@ y.append(x)
 print(y)
 ```
 
-- Elements can also be added to lists using the `extend` method, which will add an *iterable object* (such as another list) to the end of the list
+- Elements can also be added to lists using the `.extend()` method, which will add an *iterable object* (such as another list) to the end of the list
   - Say that there are two lists, `x` and `y` already declared
   - To extend list `y` with list `x`, additional blocks of memory (one for each element in `x`) are added to the end of `y`
   - Pointers then go from those new blocks in list `y` to the objects in the list `x`
@@ -154,7 +161,7 @@ y.extend(x)
 print(y)
 ```
 
-- Elements can also be added to lists using the `insert` method, which will insert a value at any location in the list (rather than just at the end)
+- Elements can also be added to lists using the `.insert()` method, which will insert a value at any location in the list (rather than just at the end)
   - The new object is inserted into the heap
   - The reference at the desired location in the list is then changed to that new object
   - Each memory block in the list then has its reference nudged to next item (with the final element being added to a new memory block at the end)
@@ -168,7 +175,7 @@ x.insert(2, 8)
 print(x)
 ```
 
-- Elements can be removed from the list using the `pop` method, which will remove an item from the list based on its index
+- Elements can be removed from the list using the `.pop()` method, which will remove an item from the list based on its index
   - The pointer from that block of memory will no longer point to that object in the heap
   - The object in the heap is removed via garbage collection
   - Not specifying an index will remove the last element of the list
@@ -183,7 +190,7 @@ x.pop(1)
 print(x)
 ```
 
-- Elements can also be removed from the list using the `remove` method, which will remove an item from the list based on its value
+- Elements can also be removed from the list using the `.remove()` method, which will remove an item from the list based on its value
   - The pointer from that block of memory will no longer point to that object in the heap
   - The object in the heap is removed via garbage collection
   - If the value occurs more than once in the list, the earliest occurence will be removed
@@ -198,6 +205,14 @@ print(x)
 x.remove(1)
 print(x)
 ```
+
+- Common Error Messages
+  - **ValueError: list.remove(x): x not in list**
+    - Occurs when we try to use `.remove()` to remove an element from a list, but that element is not present in the list
+  - **IndexError: pop index out of range**
+    - Occurs when the index given to `.pop()` is not a valid index into the relevant list
+  - **IndexError: pop from empty list**
+    - Occurs when we try to call `.pop()` with an empty list
 
 - Can concatenate lists using the `+` operator, which will create a new list containing all the references from the left-side following by all the references from the right-side
   - A new block of memory is allocated with the length of the sum of the lengths of the two lists
@@ -214,6 +229,12 @@ z = x + y
 
 print(z)
 ```
+
+- Common Error Messages
+  - **TypeError: can only concatenate list (not "...") to list**
+    - Occurs when we try to use `+` when the left-side operand is a list but the right-side operand is not
+  - **TypeError: '...' object is not iterable**
+    - Occurs when we try to use `+=` when the left-side operand is a list but the right-side operand is not
 
 ## Tuples
 
