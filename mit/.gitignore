@@ -4,5 +4,6 @@ scratch-work/
 *.html
 *.pdf
 __pycache__/
-test.py
+6.0001/*/test.py
+6.0002/*/*/test.py
 *_files/

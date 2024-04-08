@@ -2,8 +2,6 @@
 
 [Source](https://py.mit.edu/)
 
-*Note: this is based on Fall 2023, which is no longer available on the source website*
-
 ## Goals
 
 * Introduce fundamental concepts of programming
@@ -14,7 +12,7 @@
 
 | Week | Readings                               | Lab                  | Completed |
 |:----:|:--------------------------------------:|:--------------------:|:---------:|
-| 00   | Intro                                  | Audio Processing     |           |
+| 00   | Intro                                  | Audio Processing     | X         |
 | 01   | Environmental Model                    | Image Processing (1) |           |
 | 02   | Functions                              | Image Processing (2) |           |
 | 03   | Flood Fill                             | Bacon Number         |           |
