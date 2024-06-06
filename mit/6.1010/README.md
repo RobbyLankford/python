@@ -13,7 +13,7 @@
 | Week | Readings                               | Lab                  | Completed |
 |:----:|:--------------------------------------:|:--------------------:|:---------:|
 | 00   | Intro                                  | Audio Processing     | X         |
-| 01   | Environmental Model                    | Image Processing (1) |           |
+| 01   | Environmental Model                    | Image Processing (1) | X         |
 | 02   | Functions                              | Image Processing (2) |           |
 | 03   | Flood Fill                             | Bacon Number         |           |
 | 04   | Graph Search                           | Snekoban             |           |
