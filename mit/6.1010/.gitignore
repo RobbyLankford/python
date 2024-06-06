@@ -1,3 +1,6 @@
+pylintrc
 labs/week-00/sounds/*
 labs/week-00/test_inputs/*
 labs/week-00/test_outputs/*
+labs/week-01/test_images/*
+labs/week-01/test_results/*
