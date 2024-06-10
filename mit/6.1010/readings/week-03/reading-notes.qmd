@@ -1,0 +1,203 @@
+---
+title: MIT 6.1010 - Week 3 Notes
+format: html
+jupyter: python3
+---
+
+Topics covered in this lecture:
+
+- Built-In Function `zip`
+- Tuple Unpacking
+- The `*` Unpacking Operator
+- List Comprehensions
+
+# Some Useful Python Features
+
+## Built-In Function `zip`
+
+- Allows us to easily find corresponding elements in multiple iterable objects
+
+```{python}
+#> Element-wise subtraction of two lists
+def subtract_lists(l1, l2):
+    assert len(l1) == len(l2)
+
+    out = []
+    for ix in range(len(l1)):
+        out.append(l1[ix] - l2[ix])
+    
+    return out
+```
+
+- Can come at this problem slightly differently using the `zip` function
+  - Takes multiple iterable objects as input
+  - Returns a structure that can be looped over
+
+```{python}
+x = [100, 200, 300, 400]
+y = [9, 8, 7, 6]
+
+print(zip(x, y))
+```
+
+- The iterator itself is not useful on its own, but the point is to iterate over it
+
+```{python}
+for element in zip(x, y):
+    print(element)
+```
+
+- This is the same thing as doing the following, more verbose method
+
+```{python}
+for i in range(len(x)):
+    print( (x[i], y[i]) )
+```
+
+## Tuple Unpacking
+
+- The `zip` function is often used in combination with multiple assignment
+
+```{python}
+i, j = (100, 9)
+
+print(i)
+print(j)
+print( (i, j) )
+```
+
+- This can be done with any number of variables
+
+```{python}
+x, y, width, height = [0, 0, 100, 200]
+
+print(x)
+print(y)
+print(width)
+print(height)
+```
+
+- Since `zip` creates tuples, tuple unpacking is a handy way to name the elements of the lists that are being zipped together
+
+```{python}
+x = [100, 200, 300, 400]
+y = [9, 8, 7, 6]
+
+for x_value, y_value in zip(x, y):
+    print(x_value + y_value)
+```
+
+- Can now update the list subtraction function
+
+```{python}
+def subtract_lists(l1, l2):
+    assert len(l1) == len(l2)
+
+    out = []
+    for i, j in zip(l1, l2):
+        out.append(i - j)
+    
+    return out
+```
+
+## The `*` Unpacking Operator
+
+- Can unpack a tuple or list into its individual elements when calling a function
+- For example, the following function would expect a row and column as individual arguments
+
+```{python}
+#| eval: false
+
+def get_pixel(image, row, col):
+    # Do Something...
+    pass
+```
+
+- But we could pass it as a single tuple and unpack it
+
+```{python}
+#| eval: false
+
+def get_pixel(image, *location):
+    # Do Something...
+    pass
+```
+
+- This is the same as the following
+
+```{python}
+#| eval: false
+
+def get_pixel(image, location[0], location[1])
+    # Do Something...
+    pass
+```
+
+## List Comprehensions
+
+- Looping through a list can quickly become verbose, especially if a logical statement is used
+
+```{python}
+L = [9, 8, 7, 6, 5, 4, 3]
+
+out = []
+for number in L:
+    if number % 2 == 1: #> If the number is odd
+        out.append(number * 2) #> add double that number to the output
+
+print(out)
+```
+
+- The example above follows a very common structure
+
+```{python}
+#| eval: false
+
+out = []
+for VARIABLE_NAME in SOME_ITERABLE_OBJECT:
+    if SOME_CONDITION:
+        out.append(SOME_EXPRESSION)
+```
+
+This common structure has a shorthand in Python called a list comprehension
+
+```{python}
+#| eval: false
+
+[SOME EXPRESSION for VARIABLE_NAME in SOME_ITERABLE_OBJECT if SOME_CONDITION]
+```
+
+- Therefore, the original for loop can be rewritten as follows
+
+```{python}
+out = [number * 2 for number in L if number % 2 == 1]
+
+print(out)
+```
+
+- Nested for loops are also possible in list comprehensions, though they get complicated quickly and often do not fit on a single line
+
+```{python}
+#| eval: false
+
+#> Original
+out = []
+for x in <sequence of x>:
+    if <condition on x>:
+        for y in <sequence of y>:
+            if <condition on y>:
+                out.append(<some expression using x,y>)
+
+#> List Comprehension
+out = [<some expression using x,y> 
+        for x in <sequence of x> if <condition on x>
+          for y in <sequence of y> if <condition on y>]
+```
+
+- To add an `else` statement to the condition, parenthesis are needed and the condition must go in the leading expression
+
+```{python}
+#| eval: false
+
+[(SOME_EXPRESSION if SOME_CONDITION else OTHER_EXPRESSION) for VARIABLE_NAME in SOME_ITERABLE_OBJECT]
+```
