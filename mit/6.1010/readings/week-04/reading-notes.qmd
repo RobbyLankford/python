@@ -1,0 +1,289 @@
+---
+title: MIT 6.1010 - Week 4 Notes
+format: html
+jupyter: python3
+---
+
+Topics covered in this lecture:
+- Definition of Graph Search
+- Breadth First Search (BFS)
+- Depth First Search (DFS)
+
+
+# Graph Search
+
+## What is a Graph?
+
+- Consist of two things in an abstract sense:
+    1. A set of verticies, one for each object we are interested in
+    2. A set of edges, which represent relationships between those objects
+- Several kinds of edges:
+    - Bidrectional Edge: a symmetric relationship between verticies (drawn as a line)
+    - Directed/Unidirectional Edge: relationship is one way (drawn as an arrow)
+- A graph search is an algorithm that involves systematically "exploring" a graph in some way
+    - What are all of the objects that are directly connected to A?
+    - What are all of the objects that I can reach by traversing exactly two connections?
+    - What if I am willing to traverse an arbitrary number of connections?
+- A specific subset of graph search algorithms: *pathfinding algorithms*
+    - Given a starting object and a goal object, what is a path that connects the two?
+
+## Uses of Graph Search
+
+- Web Search
+- Robot Navigation
+- VLSI Circuit Layout
+- Social-Network Graphs
+- Route Planners
+- Many Puzzles and Games
+
+# Pathfinding (Abstract)
+
+- To find a path from a state *t* to some other state:
+    - Initialize an agenda (list of paths to consider)
+        - It will contain a single path that consists of only our starting state
+    - Initialize a visted set (all states that have ever been added to the agenda)
+        - It will contain only the starting state
+    - Repeat the following:
+        1. Remove one path (t -> s_1 -> s_2 -> ... -> s_N) from the agenda
+        2. For each "neighbor" state *n* or s_N (directly connected to s_N via an edge):
+            - If *n* is in the visited set, skip it
+            - Otherwise, if *n* satisfies our goal condition, return the path\
+              *(t->s_1->s_2->...->s_N->n)*
+            - Otherwise, add *n* to the visisted set and add the path\
+              *(t->s_1->s_2->...->s_N->n)*\
+              to the agenda
+   - Repeat until we find a path or the agenda is empty (no path exists)
+
+## Order Matters
+
+- We will generally have multiple paths in the agenda (often, many paths!)
+- The first step in our algorithm simply says to "remove one path from the agenda"
+    - It does **not** say *which* path we should remove
+- Similarly, our algorithm simply says to add new paths to the agenda
+    - It does **not** say anything about *where* we should put those new paths
+- The order in which we consider the paths has a big effect on the way the algorithm "explores" the graph
+- The order also has a big effect on the nature of the paths that are ultimately returned
+- **DEPTH-FIRST SEARCH (DFS)**: explore the entire depth of a path before considering paths along the breadth of the tree
+  - In other words, it always considers the *newest* path that was added to the agenda
+- **BREADTH-FIRST SEARCH (BFS)**: explore the entire breadth of the tree before considering paths deeper down the tree
+    - In other words, it considers all paths of a given length *n* before considering *any* paths of length *n+1* (it always considers the *oldest* path)
+
+## Summary of BFS vs DFS
+
+- Breadth-First Search
+  - Add and remove elements from the *opposite side* of the agenda
+    - This approach is known as "first-in, first-out" (FIFO)
+  - Guaranteed to return a shortest path to a goal vertex if such a path exists, regardless of the structure of our graph
+  - Since we consider all paths of length *n* before considering any paths of length *n+1*, we know that, when we first enounter a state that satisfies our goal condition, it must be optimal
+    - This is because there is no shorter path to the goal
+  - Can run forever if it is being applied to an infinite graph with no solution
+  - Will always terminate in a finite graph of in an infinite graph where a solution exists
+- Depth-First Search
+  - Add and remove elements from the *same side* of the agenda
+    - This approach is known as "last-in, first-out" (LIFO)
+    - Guaranteed to find a path to the goal (not necessarily an optimal one) if such a path exists and if the graph is finite
+    - May run forever on an infinite graph, even if a solution exists
+- Is DFS Bad?
+  - Can result in an ugly path and something far from optimal
+  - Often offers us weaker paths than those that BFS offers 
+  - However, DFS tends to use less memory than BFS
+    - Consider a graph with a "branching factor" of *b* (every state is connected to *b* other states)
+    - There will be around *b^n* paths of length *n* and *b^n* elements in the agenda when we are considering the last path of length *n-1*
+    - The agenda for DFS will have around *b x n* elements in the agenda when considering a path of length *n-1*
+    - As *b* and *n* increase, *b x n* is substantially smaller than *b^n*
+  
+## Pathfinding
+
+- Five distinct items to represent in order to write code to solve paths
+    1. The Graph
+        - Represents all the available states as well as their connections
+        - Can use an "adjacency dictionary"
+        - Each key is a single state and each value is a list of states that share an edge with the key
+    2. The Start and Goal Conditions
+        - Start position is a state in whatever graph is being searched
+        - Goal condition is, abstractly, a function that takes a state as input and returns a Boolean indicating whether that state satisfies the goal
+    3. The Path
+        - An ordered sequence of states
+        - Can be represented using a tuple
+        - Index 0 will correspond to the starting state
+    4. The Agenda
+        - Stores elements in a given order
+        - Need to be able to remove elements from either side
+        - Can be represented using a list since it is mutable
+    5. The Visited Set
+        - No order needed, just need to add elements and check if they are already in it
+        - Can use a set due to efficiency of checking
+        - Need to make sure to only add *hashable* elements to it
+
+- Implement BFS in Python
+
+```{python}
+def find_path(graph, start, goal_test):
+  """
+  Find a path through the given state graph, starting from the `start` state
+  and reaching a state satisfying `goal_test`.
+
+  Note that all state representations must be hashable.
+
+  graph: adjacency dictionary, where each key is a state, and its value is the
+         list of the states' immediate neighbors
+  
+  start: starting state
+
+  goal_test: function that takes a state and returns True (or truthy) if and only if
+             the state satisfies the goal condition
+  
+  returns the path of states 
+  """
+  if goal_test(start):
+    return (start, )
+  
+  agenda = [(start, )]
+  visited = {start}
+
+  while agenda:
+    this_path = agenda.pop(0)
+    terminal_state = this_path[-1]
+
+    #> Calling get(terminal_state, []) on the graph dictionary is the same as
+    #> graph[terminal_state] if the key is found, otherwise it returns the
+    #> default value [] (avoiding KeyError)
+    for neighbor in graph.get(terminal_state, []):
+      if neighbor not in visited:
+        new_path = this_path + (neighbor, )
+
+        if goal_test(neighbor):
+          return new_path
+        
+        agenda.append(new_path)
+        visited.add(neighbor)
+  
+  return None
+```
+
+- Can test this function with a simple graph
+
+```{python}
+test_graph = {
+  '13':  ['77', '43', '0'],
+  '77':  ['32', '28'],
+  '32':  ['215'],
+  '215': ['32', '42'],
+  '28':  ['42'],
+  '42':  ['215'],
+  '43':  [],
+  '0':   ['108'],
+  '108': []
+}
+
+print(find_path(test_graph, '13', lambda state: state == '32'))
+print(find_path(test_graph, '0', lambda state: state == '215'))
+```
+
+- Implement DFS in Python
+
+```{python}
+def find_path(graph, start, goal_test):
+  """
+  Find a path through the given state graph, starting from the `start` state
+  and reaching a state satisfying `goal_test`.
+
+  Note that all state representations must be hashable.
+
+  graph: adjacency dictionary, where each key is a state, and its value is the
+         list of the states' immediate neighbors
+  
+  start: starting state
+
+  goal_test: function that takes a state and returns True (or truthy) if and only if
+             the state satisfies the goal condition
+  
+  returns the path of states 
+  """
+  if goal_test(start):
+    return (start, )
+  
+  agenda = [(start, )]
+  visited = {start}
+
+  while agenda:
+    this_path = agenda.pop(-1) #> Changes to DFS
+    terminal_state = this_path[-1]
+
+    #> Calling get(terminal_state, []) on the graph dictionary is the same as
+    #> graph[terminal_state] if the key is found, otherwise it returns the
+    #> default value [] (avoiding KeyError)
+    for neighbor in graph.get(terminal_state, []):
+      if neighbor not in visited:
+        new_path = this_path + (neighbor, )
+
+        if goal_test(neighbor):
+          return new_path
+        
+        agenda.append(new_path)
+        visited.add(neighbor)
+  
+  return None
+```
+
+- Can test this function with a simple graph
+
+```{python}
+test_graph = {
+  '13':  ['77', '43', '0'],
+  '77':  ['32', '28'],
+  '32':  ['215'],
+  '215': ['32', '42'],
+  '28':  ['42'],
+  '42':  ['215'],
+  '43':  [],
+  '0':   ['108'],
+  '108': []
+}
+
+print(find_path(test_graph, '13', lambda state: state == '32'))
+print(find_path(test_graph, '0', lambda state: state == '215'))
+```
+
+- Can modify the code a little to implement it in solving th 15-Puzzle game
+  - Generalize it to use a function to find neighboring states, rather than looking them up in a graph representation
+```{python}
+def find_path(neighbors_function, start, goal_test):
+  """
+  Find a path through a state graph defined by `neighbors_function`,
+  starting from the `start` state and reaching a state satisfying
+  `goal_test`.
+
+  Note that all state representations must be hashable.
+
+  neighbors_function: function that takes a state and returns its
+                      neighbors (as an iterable)
+  start: starting state
+  goal_test: function that takes a state and returns True (or truthy) if
+             and only if the state satisfies the goal condition
+  
+  returns the path of states from start to a goal state, or None if no
+  path exists.
+  """
+  if goal_test(start):
+    return (start, )
+  
+  agenda = [(start, )]
+  visited = {start}
+
+  while agenda:
+    this_path = agenda.pop(0)
+    terminal_state = this_path[-1]
+
+    for neighbor in neighbors_function(terminal_state):
+      if neighbor not in visited:
+        new_path = this_path + (neighbor, )
+
+        if goal_test(neighbor):
+          return new_path
+        
+        agenda.append(new_path)
+        visited.add(neighbor)
+  
+  return None
+```
