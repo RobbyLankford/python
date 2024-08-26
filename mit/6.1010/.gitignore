@@ -4,3 +4,4 @@ pylintrc
 *.pickle
 LICENSES.txt
 /temp/
+/labs/week-04/test_*
