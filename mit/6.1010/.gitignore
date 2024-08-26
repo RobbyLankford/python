@@ -3,3 +3,4 @@ pylintrc
 *.wav
 *.pickle
 LICENSES.txt
+/temp/
