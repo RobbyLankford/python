@@ -16,7 +16,7 @@
 | 01   | Environmental Model                    | Image Processing (1) | X         |
 | 02   | Functions                              | Image Processing (2) | X         |
 | 03   | Flood Fill                             | Bacon Number         | X         |
-| 04   | Graph Search                           | Snekoban             |           |
+| 04   | Graph Search                           | Snekoban             | X         |
 | 05   | N/A                                    | N/A                  |           |
 | 06   | Recursion                              | Recipes              |           |
 | 07   | Recursion & Iteration                  | Mines                |           |
