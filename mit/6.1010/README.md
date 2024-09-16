@@ -17,7 +17,7 @@
 |  02  |               Functions                | Image Processing (2) |     X     |
 |  03  |               Flood Fill               |     Bacon Number     |     X     |
 |  04  |              Graph Search              |       Snekoban       |     X     |
-|  05  |               Recursion                |       Recipes        |           |
+|  05  |               Recursion                |       Recipes        |     X     |
 |  06  |                Midterm                 |         N/A          |           |
 |  07  |                 Break                  |         N/A          |           |
 |  08  |         Recursion & Iteration          |        Mines         |           |
