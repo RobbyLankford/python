@@ -1,8 +1,0 @@
-pylintrc
-*.png
-*.wav
-*.pickle
-LICENSES.txt
-old/*
-temp/
-/labs/week-04/test_*

@@ -1,3 +1,0 @@
-What are all the phrases that can be  made given the root "greeting"?
-
-"greeting" is [["hi", "noun"]] => {("hi", "pigs"), ("hi", "professors"), }

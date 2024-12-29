@@ -1,4 +1,0 @@
-From Question 3:
-
-Base case: when the root word is NOT in the grammar
-Recursive case: iterate through each rule associated to with the root until a non-rule is hit (then base case)
